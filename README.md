@@ -7,4 +7,5 @@ The main project workflow is described in this .Rmd. Guides from step 1 to the f
 ## Checkpoint1_scratch.Rmd
 Copied from the previous checkpoint homework. Use as a code guidance and also contains some Q & A.
 
-
+## SraRunTable_liver.txt
+Downloaded NMR liver metadata file from ensembl 
