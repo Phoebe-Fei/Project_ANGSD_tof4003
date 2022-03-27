@@ -78,12 +78,13 @@ mkdir -p lvr_female
 nano data_acc.sh
 #! /bin/bash -l
 #SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=SRA_run
 #SBATCH --time=15:00:00 #HH/MM/SS
 #SBATCH --mem=10G
-#SBATCH --nodelist=farina.pbtech #specify the node
+
 #load SRA toolkit
 spack load sra-toolkit@2.8.2-1%gcc@6.3.0
 cd /athena/angsd/scratch/tof4003/project
@@ -118,12 +119,12 @@ nano ref_d.sh
 
 #! /bin/bash -l
 #SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=SRA_run
 #SBATCH --time=15:00:00 #HH/MM/SS
 #SBATCH --mem=10G
-#SBATCH --nodelist=buddy.pbtech #specify the node
 
 cd  /athena/angsd/scratch/tof4003/project
 wget -O NMR_ref/maleNMR.gtf.gz http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_male/Heterocephalus_glaber_male.HetGla_1.0.105.gtf.gz
@@ -148,5 +149,82 @@ ls NMR_ref
 
 ```
 
+### b. creating Index
 
+The STAR index for male has already been created in prev. checkpoint using command below.
+
+
+```bash
+#the reference is similar to the Gierlinski data set so I just used the same parameters (sjdboverhang will prevent any splice pverhang smaller than 99)
+#will increase the thread and gpu to run faster
+mkdir -p star_test
+nano star_test/ref_gen.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --nodes=1
+#SBATCH --ntasks=4
+#SBATCH #SBATCH --cpus-per-task=8 #try multiple threads with multiple cpu
+#SBATCH --job-name=REf_gen_STAR
+#SBATCH --time=48:00:00 #HH/MM/SS
+#SBATCH --mem=100G
+#SBATCH --nodelist=buddy.pbtech #specify the node
+cd /athena/angsd/scratch/tof4003/project/NMR_ref
+mkdir -p STAR_ref
+#load STAR
+spack load star@2.7.0e
+STAR --runMode genomeGenerate \
+--runThreadN 2 \
+--genomeDir STAR_ref \
+--genomeFastaFiles NMR_ref_male.fa \
+--sjdbGTFfile maleNMR.gtf \
+--limitGenomeGenerateRAM 100326568150 \
+--sjdbOverhang 99
+
+sbatch star_test/ref_gen.sh
+ls NMR_ref/STAR_ref
+```
+
+#### Output 
+
+```
+chrLength.txt      exonInfo.tab          SAindex
+chrNameLength.txt  geneInfo.tab          sjdbInfo.txt
+chrName.txt        Genome                sjdbList.fromGTF.out.tab
+chrStart.txt       genomeParameters.txt  sjdbList.out.tab
+exonGeTrInfo.tab   SA                    transcriptInfo.tab
+
+```
+
+Now, similarly I will create 1 for NMR female, with editing the resource request to speed up as suggested
+
+```bash
+
+mkdir -p star_liver
+nano star_liver/star_female_ref.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH #SBATCH --cpus-per-task=4 #try multiple threads with multiple cpu
+#SBATCH --job-name=REf_gen_STAR
+#SBATCH --time=48:00:00 #HH/MM/SS
+#SBATCH --mem=100G
+
+cd /athena/angsd/scratch/tof4003/project/NMR_ref
+mkdir -p STAR_ref
+#load STAR
+spack load star@2.7.0e
+STAR --runMode genomeGenerate \
+--runThreadN 4 \
+--genomeDir STAR_ref \
+--genomeFastaFiles NMR_ref_female.fa \
+--sjdbGTFfile femaleNMR.gtf \
+--limitGenomeGenerateRAM 100326568150 \
+--sjdbOverhang 99
+
+sbatch star_liver/star_female_ref.sh
+ls NMR_ref/STAR_ref
+```
 
