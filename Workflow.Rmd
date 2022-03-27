@@ -1,0 +1,37 @@
+---
+title: "WorkFlow"
+author: "Phoebe Fei"
+date: "3/26/2022"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{css style_settings, echo = FALSE}
+blockquote { 
+    font-size: 14px; 
+    font-style: italic;
+}
+h1{
+    font-size: 22px;
+}
+h2{
+    font-size: 20px;
+}
+h3{
+    font-size: 18px;
+}
+h4{
+    font-size: 16px;
+}
+
+```
+
+**This is the main workflow .rmd that guides through the workflow of this project, some copied from the test rmd**
+
+# File Download and Preparation
+
+
+
