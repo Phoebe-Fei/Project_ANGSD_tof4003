@@ -29,10 +29,101 @@ h4{
 
 ```
 
-**This is the main workflow .rmd that guides through the workflow of this project, some copied from the test rmd**
+**This is the main workflow .rmd that guides through the workflow of this project, some copied from the checkpoint rmd**
 
-# File Download and Preparation
+# 1. File Download and Preparation
 
+### a. File Download 
+
+The reference genomes for naked mole rats are found in Ensembl. The female and male have separate reference genomes.
+
+For Female: http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_female/
+
+For Male: http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_male/
+
+The data is accessible from NCBI SRA/GEO dataset under project number PRJNA386015. The link to the SRA run selector is https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA386015&o=acc_s%3Aa.  
+
+i. Copy the files (reference and fastq files to my directory at /athena/angsd/scratch/tof4003/project)
+
+I will copy all NMR liver files to the project
+
+```bash
+#download the metadata file (liver for all NMR) and put it into my directory
+scp "C:/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/SraRunTable_liver.txt" tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project
+
+head -5 SraRunTable_liver.txt
+```
+#### Output
+```
+Run,Age,Assay Type,AvgSpotLen,Bases,BioProject,BioSample,Bytes,Center Name,Consent,DATASTORE filetype,DATASTORE provider,DATASTORE region,Experiment,GEO_Accession (exp),Instrument,LibraryLayout,LibrarySelection,LibrarySource,Organism,Platform,ReleaseDate,reproductive_status,Sample Name,sex,source_name,SRA Study,tissue,strain
+SRR5517432,3.7 years,RNA-Seq,50,1143144100,PRJNA385850,SAMN06917366,753974373,GEO,public,"fastq,sra","gs,ncbi,s3","gs.US,ncbi.public,s3.us-east-1",SRX2790801,GSM2609133,Illumina HiSeq 2500,SINGLE,cDNA,TRANSCRIPTOMIC,Heterocephalus glaber,ILLUMINA,2018-06-14T00:00:00Z,breeder,GSM2609133,female,liver,SRP106650,liver,
+SRR5517435,3.6 years,RNA-Seq,50,1263344450,PRJNA385850,SAMN06917363,850450852,GEO,public,"fastq,sra","gs,ncbi,s3","gs.US,ncbi.public,s3.us-east-1",SRX2790804,GSM2609136,Illumina HiSeq 2500,SINGLE,cDNA,TRANSCRIPTOMIC,Heterocephalus glaber,ILLUMINA,2018-06-14T00:00:00Z,breeder,GSM2609136,female,liver,SRP106650,liver,
+SRR5517437,3.7 years,RNA-Seq,50,1109269000,PRJNA385850,SAMN06917361,731997749,GEO,public,"fastq,sra","gs,ncbi,s3","gs.US,ncbi.public,s3.us-east-1",SRX2790806,GSM2609138,Illumina HiSeq 2500,SINGLE,cDNA,TRANSCRIPTOMIC,Heterocephalus glaber,ILLUMINA,2018-06-14T00:00:00Z,breeder,GSM2609138,female,liver,SRP106650,liver,
+SRR5517441,2.4 years,RNA-Seq,51,1253621004,PRJNA385850,SAMN06917357,846076900,GEO,public,"fastq,sra","gs,ncbi,s3","gs.US,ncbi.public,s3.us-east-1",SRX2790810,GSM2609142,Illumina HiSeq 2500,SINGLE,cDNA,TRANSCRIPTOMIC,Heterocephalus glaber,ILLUMINA,2018-06-14T00:00:00Z,non-breeder,GSM2609142,female,liver,SRP106650,liver,
+
+```
+The run is field 1, reproduction status is field 28, sex is field 30
+
+
+```bash
+
+#download data
+awk -F "," '{ if($30 == "male") print $1","$28}' SraRunTable_liver.txt > liver_male.txt
+awk -F "," '{ if($30 == "female") print $1","$28}' SraRunTable_liver.txt > liver_female.txt
+
+mkdir -p lvr_male
+mkdir -p lvr_female
+
+#had to sbatch because this process took a long time
+nano data_acc.sh
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --job-name=SRA_run
+#SBATCH --time=15:00:00 #HH/MM/SS
+#SBATCH --mem=10G
+#SBATCH --nodelist=farina.pbtech #specify the node
+#load SRA toolkit
+spack load sra-toolkit@2.8.2-1%gcc@6.3.0
+cd /athena/angsd/scratch/tof4003/project
+#clear the sra directory
+rm -r /home/tof4003/ncbi
+while read line; do
+    echo $line
+    accession=$(cut -d "," -f 1 <<< "$line")
+    breed=$(cut -d "," -f 2 <<< "$line")
+    prefetch $accession
+    #change to fastq format
+    fastq-dump /home/tof4003/ncbi/public/sra/$accession.sra -O /athena/angsd/scratch/tof4003/project/lvr_male/$accession_$breed.fastq
+done < /athena/angsd/scratch/tof4003/project/liver_male.txt
+rm -r /home/tof4003/ncbi
+while read line; do
+    echo $line
+    accession=$(cut -d "," -f 1 <<< "$line")
+    breed=$(cut -d "," -f 2 <<< "$line")
+    prefetch $accession
+    #change to fastq format
+    fastq-dump /home/tof4003/ncbi/public/sra/$accession.sra -O /athena/angsd/scratch/tof4003/project/lvr_female/$accession_$breed.fastq
+done < /athena/angsd/scratch/tof4003/project/liver_female.txt
+
+sbatch data_acc.sh
+#cleaning the temp files
+rm -r /home/tof4003/ncbi
+
+#download reference
+mkdir -p NMR_ref
+wget -O NMR_ref/maleNMR.gtf.gz http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_male/Heterocephalus_glaber_male.HetGla_1.0.105.gtf.gz
+#need to also download the reference fasta dna file
+wget -O NMR_ref/NMR_male_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/heterocephalus_glaber_male/dna/Heterocephalus_glaber_male.HetGla_1.0.dna.toplevel.fa.gz
+#unzip everything (for some reason directly specifying zcat to read .gz file with star returns that I have an extra space before the > in fasta, even though checking using head indicates no problem)
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/maleNMR.gtf
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_male_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_male.fa
+ls skn_male_nbreed
+head -10 skn_male_nbreed/SRR5517391.fastq
+ls NMR_ref
+
+```
 
 
 
