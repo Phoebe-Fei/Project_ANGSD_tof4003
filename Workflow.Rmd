@@ -113,14 +113,37 @@ rm -r /home/tof4003/ncbi
 
 #download reference
 mkdir -p NMR_ref
+
+nano ref_d.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --job-name=SRA_run
+#SBATCH --time=15:00:00 #HH/MM/SS
+#SBATCH --mem=10G
+#SBATCH --nodelist=buddy.pbtech #specify the node
+
+cd  /athena/angsd/scratch/tof4003/project
 wget -O NMR_ref/maleNMR.gtf.gz http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_male/Heterocephalus_glaber_male.HetGla_1.0.105.gtf.gz
+wget -O NMR_ref/femaleNMR.gtf.gz http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_female/Heterocephalus_glaber_female.HetGla_female_1.0.105.gtf.gz
 #need to also download the reference fasta dna file
 wget -O NMR_ref/NMR_male_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/heterocephalus_glaber_male/dna/Heterocephalus_glaber_male.HetGla_1.0.dna.toplevel.fa.gz
+wget -O NMR_ref/NMR_female_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/heterocephalus_glaber_female/dna/Heterocephalus_glaber_female.HetGla_female_1.0.dna.toplevel.fa.gz
+
+
 #unzip everything (for some reason directly specifying zcat to read .gz file with star returns that I have an extra space before the > in fasta, even though checking using head indicates no problem)
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/maleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_male_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_male.fa
-ls skn_male_nbreed
-head -10 skn_male_nbreed/SRR5517391.fastq
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/femaleNMR.gtf
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_female_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa
+
+sbatch ref_d.sh
+
+ls lvr_female
+ls lvr_male
+
 ls NMR_ref
 
 ```
