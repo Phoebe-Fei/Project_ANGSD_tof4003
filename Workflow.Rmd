@@ -92,20 +92,24 @@ cd /athena/angsd/scratch/tof4003/project
 rm -r /home/tof4003/ncbi
 while read line; do
     echo $line
-    accession=$(cut -d "," -f 1 <<< "$line")
+    acc=$(cut -d "," -f 1 <<< "$line")
     breed=$(cut -d "," -f 2 <<< "$line")
-    prefetch $accession
+    prefetch $acc
     #change to fastq format
-    fastq-dump /home/tof4003/ncbi/public/sra/$accession.sra -O /athena/angsd/scratch/tof4003/project/lvr_male/$accession_$breed.fastq
+    fastq-dump /home/tof4003/ncbi/public/sra/$acc.sra -O /athena/angsd/scratch/tof4003/project/lvr_male
+    #rename the file
+    mv /athena/angsd/scratch/tof4003/project/lvr_male/$acc.fastq /athena/angsd/scratch/tof4003/project/lvr_male/$acc.m_$breed.fastq
 done < /athena/angsd/scratch/tof4003/project/liver_male.txt
 rm -r /home/tof4003/ncbi
 while read line; do
     echo $line
-    accession=$(cut -d "," -f 1 <<< "$line")
+    acc=$(cut -d "," -f 1 <<< "$line")
     breed=$(cut -d "," -f 2 <<< "$line")
-    prefetch $accession
+    prefetch $acc
     #change to fastq format
-    fastq-dump /home/tof4003/ncbi/public/sra/$accession.sra -O /athena/angsd/scratch/tof4003/project/lvr_female/$accession_$breed.fastq
+    fastq-dump /home/tof4003/ncbi/public/sra/$acc.sra -O /athena/angsd/scratch/tof4003/project/lvr_female
+    #rename the file
+    mv /athena/angsd/scratch/tof4003/project/lvr_female/$acc.fastq /athena/angsd/scratch/tof4003/project/lvr_female/$acc.f_$breed.fastq
 done < /athena/angsd/scratch/tof4003/project/liver_female.txt
 
 sbatch data_acc.sh
@@ -137,15 +141,45 @@ wget -O NMR_ref/NMR_female_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/he
 #unzip everything (for some reason directly specifying zcat to read .gz file with star returns that I have an extra space before the > in fasta, even though checking using head indicates no problem)
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/maleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_male_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_male.fa
-zcat /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/femaleNMR.gtf
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_female_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa
 
 sbatch ref_d.sh
 
 ls lvr_female
 ls lvr_male
+ls NMR_ref
+```
+#### Output
+
+lvr_female
+
+```
+SRR5517432.f_breeder.fastq  SRR5517441.f_non-breeder.fastq
+SRR5517435.f_breeder.fastq  SRR5517445.f_non-breeder.fastq
+SRR5517436.f_breeder.fastq  SRR5517446.f_non-breeder.fastq
+SRR5517437.f_breeder.fastq  SRR5517449.f_non-breeder.fastq
+SRR5517439.f_breeder.fastq  SRR5517450.f_non-breeder.fastq
+SRR5517440.f_breeder.fastq
+
+```
+lvr_male
+```
+SRR5517433.m_breeder.fastq      SRR5517447.m_breeder.fastq
+SRR5517434.m_breeder.fastq      SRR5517448.m_non-breeder.fastq
+SRR5517438.m_breeder.fastq      SRR5517451.m_non-breeder.fastq
+SRR5517442.m_non-breeder.fastq  SRR5517452.m_non-breeder.fastq
+SRR5517443.m_breeder.fastq      SRR5517454.m_breeder.fastq
+SRR5517444.m_non-breeder.fastq
+
+```
 
 ls NMR_ref
+STAR, bwa and hisat2 for male index were already generated and put into the folder
+```
+bwa_index_NMR_male     Log.out         NMR_female_dna.fa.gz  NMR_ref_male.fa
+femaleNMR.gtf.gz       maleNMR.gtf     NMR_male_dna.fa.gz    STAR_ref
+hisat2_index_NMR_male  maleNMR.gtf.gz  NMR_ref_female.fa
 
 ```
 
@@ -213,12 +247,12 @@ nano star_liver/star_female_ref.sh
 #SBATCH --mem=100G
 
 cd /athena/angsd/scratch/tof4003/project/NMR_ref
-mkdir -p STAR_ref
+mkdir -p STAR_ref_female
 #load STAR
 spack load star@2.7.0e
 STAR --runMode genomeGenerate \
 --runThreadN 4 \
---genomeDir STAR_ref \
+--genomeDir STAR_ref_female \
 --genomeFastaFiles NMR_ref_female.fa \
 --sjdbGTFfile femaleNMR.gtf \
 --limitGenomeGenerateRAM 100326568150 \
@@ -226,5 +260,77 @@ STAR --runMode genomeGenerate \
 
 sbatch star_liver/star_female_ref.sh
 ls NMR_ref/STAR_ref
+```
+#### Output
+
+
+### c. Checking Quality of qc files
+
+This is done already in Checkpoint1 - see rendered html.
+
+# 2. Alignment
+
+I will run STAR and Hisat2 - STAR is extremely slow but since it's the standard, I will run it. Hisat2 has generally stable performance.
+
+
+### a. Hisat2
+
+```bash
+mkdir -p liver_hisat2
+cd liver_hisat2
+
+nano hisat2_script.sh
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4 #try multiple threads with multiple cpu
+#SBATCH --job-name=Hisat2_tof4003
+#SBATCH --time=48:00:00 #HH/MM/SS
+#SBATCH --mem=40G
+
+#load modules
+spack load hisat2
+spack load samtools@1.9% gcc@6.3.0
+cd /athena/angsd/scratch/tof4003/project/NMR_ref
+#male has already been indexed, need female
+mkdir -p hisat2_index_NMR_female
+cd hisat2_index_NMR_female
+#Index the genome
+hisat2-build -p 16 /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa HISAT2_NMR_female
+cd /athena/angsd/scratch/tof4003/project/lvr_male
+#run hisat2 alignment: reads are in fastq files, threads = 2; files are not pair-end reads
+mkdir -p /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male
+for file in *.fastq; do
+  echo "Begin $file"
+  fv=$(cut -d "." -f 1 <<< "$file")
+  suf=$(cut -d "." -f 2 <<< "$file")
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_male/HISAT2_NMR_male -U $file > /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sam
+  #use samtools to covert to bam, sort& index
+  #sort & covert to bam
+  samtools view -b /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
+  #index
+  samtools index /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
+  echo "Hisat2 for $fv.$suf done"
+done
+
+#females
+cd /athena/angsd/scratch/tof4003/project/lvr_female
+
+mkdir -p /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female
+for file in *.fastq; do
+  echo "Begin $file"
+  fv=$(cut -d "." -f 1 <<< "$file")
+  suf=$(cut -d "." -f 2 <<< "$file")
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_female/HISAT2_NMR_female -U $file > /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sam
+  #use samtools to covert to bam, sort& index
+  #sort & covert to bam
+  samtools view -b /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
+  #index
+  samtools index /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
+  echo "Hisat2 for $fv.$suf done"
+done
+
+sbatch hisat2_script.sh
 ```
 
