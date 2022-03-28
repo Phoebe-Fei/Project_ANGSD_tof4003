@@ -287,7 +287,7 @@ nano hisat2_script.sh
 #SBATCH --cpus-per-task=4 #try multiple threads with multiple cpu
 #SBATCH --job-name=Hisat2_tof4003
 #SBATCH --time=48:00:00 #HH/MM/SS
-#SBATCH --mem=40G
+#SBATCH --mem=60G
 
 #load modules
 spack load hisat2
@@ -300,37 +300,92 @@ cd hisat2_index_NMR_female
 hisat2-build -p 16 /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa HISAT2_NMR_female
 cd /athena/angsd/scratch/tof4003/project/lvr_male
 #run hisat2 alignment: reads are in fastq files, threads = 2; files are not pair-end reads
-mkdir -p /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male
+mkdir -p /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
 for file in *.fastq; do
   echo "Begin $file"
   fv=$(cut -d "." -f 1 <<< "$file")
   suf=$(cut -d "." -f 2 <<< "$file")
-  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_male/HISAT2_NMR_male -U $file > /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sam
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_male/HISAT2_NMR_male -U $file > /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam
   #use samtools to covert to bam, sort& index
   #sort & covert to bam
-  samtools view -b /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
+  samtools view -b /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
   #index
-  samtools index /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
+  samtools index /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
   echo "Hisat2 for $fv.$suf done"
 done
 
 #females
 cd /athena/angsd/scratch/tof4003/project/lvr_female
 
-mkdir -p /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female
+mkdir -p /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
 for file in *.fastq; do
   echo "Begin $file"
   fv=$(cut -d "." -f 1 <<< "$file")
   suf=$(cut -d "." -f 2 <<< "$file")
-  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_female/HISAT2_NMR_female -U $file > /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sam
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_female/HISAT2_NMR_female -U $file > /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam
   #use samtools to covert to bam, sort& index
   #sort & covert to bam
-  samtools view -b /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
+  samtools view -b /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
   #index
-  samtools index /athena/angsd/scratch/tof4003/project/lvr_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
+  samtools index /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
   echo "Hisat2 for $fv.$suf done"
 done
 
 sbatch hisat2_script.sh
+```
+
+### b. STAR
+
+```bash
+cd /athena/angsd/scratch/tof4003/project/star_liver
+
+nano star_align.sh
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --job-name=STAR_align
+#SBATCH --time=40:00:00 #HH/MM/SS
+#SBATCH --mem=60G
+
+#load modules
+spack load star@2.7.0e
+spack load samtools@1.9% gcc@6.3.0
+cd /athena/angsd/scratch/tof4003/project/star_liver
+#running STAR
+for file in /athena/angsd/scratch/tof4003/project/lvr_male/*.fastq; do
+  echo "Begin $file"
+  fv=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 1 )
+  suf=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 2)
+  STAR --runMode alignReads \
+  --runThreadN 4 \
+  --genomeDir /athena/angsd/scratch/tof4003/project/NMR_ref/STAR_ref \
+  --readFilesIn $file \
+  --outFileNamePrefix $fv.$suf.star. \
+  --outSAMtype BAM SortedByCoordinate
+  #use samtools to index
+  #index
+  samtools index $fv.$suf.star.Aligned.sortedByCoord.out.bam
+  echo "star $fv.$suf done"
+done
+#females
+for file in /athena/angsd/scratch/tof4003/project/lvr_female/*.fastq; do
+  echo "Begin $file"
+  fv=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 1 )
+  suf=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 2)
+  STAR --runMode alignReads \
+  --runThreadN 4 \
+  --genomeDir /athena/angsd/scratch/tof4003/project/NMR_ref/STAR_ref_female \
+  --readFilesIn $file \
+  --outFileNamePrefix $fv.$suf.star. \
+  --outSAMtype BAM SortedByCoordinate
+  #use samtools to index
+  #index
+  samtools index $fv.$suf.star.Aligned.sortedByCoord.out.bam
+  echo "star $fv.$suf done"
+done
+
+sbatch star_align.sh
 ```
 
