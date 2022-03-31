@@ -557,7 +557,7 @@ sbatch bam_fastqc.sh
 #file download in cmd
 scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\hisat2_fastqc_bam.html"
 
-
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/star/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\star_fastqc_bam.html"
 ```
 
 ### c. bamqc
