@@ -1,5 +1,5 @@
 ---
-title: "WorkFlow"
+title: "Project Vignette"
 author: "Phoebe Fei"
 date: "3/26/2022"
 output: 
@@ -332,6 +332,10 @@ for file in *.fastq; do
 done
 
 sbatch hisat2_script.sh
+
+#remove .sam files to free up space
+rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/*.sam
+rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/*.sam
 ```
 
 ### b. STAR
@@ -388,4 +392,196 @@ done
 
 sbatch star_align.sh
 ```
+
+# 3.  Quality Check
+
+### a. clearing the file and quick check in the folder
+
+```bash
+cd /athena/angsd/scratch/tof4003/project
+
+#look at hisat2 alignment status
+cat liver_hisat2/slurm-8956337.out | egrep "alignment | SRR.+"
+#there is a separate file for females
+cat liver_hisat2/slurm-8959476.out | egrep "alignment | SRR.+"
+
+#freeing some memories
+nano gz.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --job-name=zip_files
+#SBATCH --time=15:00:00 #HH/MM/SS
+#SBATCH --mem=8G
+
+cd /athena/angsd/scratch/tof4003/project
+gzip lvr_male/*.fastq lvr_male/*.fastq.gz
+rm lvr_male/*.fastq
+gzip lvr_female/*.fastq lvr_female/*fastq.gz
+rm lvr_female/*.fastq
+rm liver_hisat2/out_female/*.sam
+
+sbatch gz.sh
+
+```
+
+#### Output
+
+Hisat2 male alignment (the job was killed before all female was done so I deleted the female alignments and reran, also removed below the records for females in slurm-8956337.out)
+```
+Begin SRR5517433.m_breeder.fastq
+92.72% overall alignment rate
+Hisat2 for SRR5517433.m_breeder done
+Begin SRR5517434.m_breeder.fastq
+93.00% overall alignment rate
+Hisat2 for SRR5517434.m_breeder done
+Begin SRR5517438.m_breeder.fastq
+93.16% overall alignment rate
+Hisat2 for SRR5517438.m_breeder done
+Begin SRR5517442.m_non-breeder.fastq
+94.02% overall alignment rate
+Hisat2 for SRR5517442.m_non-breeder done
+Begin SRR5517443.m_breeder.fastq
+93.89% overall alignment rate
+Hisat2 for SRR5517443.m_breeder done
+Begin SRR5517444.m_non-breeder.fastq
+93.69% overall alignment rate
+Hisat2 for SRR5517444.m_non-breeder done
+Begin SRR5517447.m_breeder.fastq
+93.17% overall alignment rate
+Hisat2 for SRR5517447.m_breeder done
+Begin SRR5517448.m_non-breeder.fastq
+92.37% overall alignment rate
+Hisat2 for SRR5517448.m_non-breeder done
+Begin SRR5517451.m_non-breeder.fastq
+90.07% overall alignment rate
+Hisat2 for SRR5517451.m_non-breeder done
+Begin SRR5517452.m_non-breeder.fastq
+93.72% overall alignment rate
+Hisat2 for SRR5517452.m_non-breeder done
+Begin SRR5517454.m_breeder.fastq
+93.39% overall alignment rate
+Hisat2 for SRR5517454.m_breeder done
+
+```
+
+Hisat2 female alignment
+```
+Begin SRR5517432.f_breeder.fastq
+93.37% overall alignment rate
+Hisat2 for SRR5517432.f_breeder done
+Begin SRR5517435.f_breeder.fastq
+93.33% overall alignment rate
+Hisat2 for SRR5517435.f_breeder done
+Begin SRR5517436.f_breeder.fastq
+92.50% overall alignment rate
+Hisat2 for SRR5517436.f_breeder done
+Begin SRR5517437.f_breeder.fastq
+92.23% overall alignment rate
+Hisat2 for SRR5517437.f_breeder done
+Begin SRR5517439.f_breeder.fastq
+92.76% overall alignment rate
+Hisat2 for SRR5517439.f_breeder done
+Begin SRR5517440.f_breeder.fastq
+Hisat2 for SRR5517440.f_breeder done
+Begin SRR5517441.f_non-breeder.fastq
+Hisat2 for SRR5517441.f_non-breeder done
+Begin SRR5517445.f_non-breeder.fastq
+Hisat2 for SRR5517445.f_non-breeder done
+Begin SRR5517446.f_non-breeder.fastq
+Hisat2 for SRR5517446.f_non-breeder done
+Begin SRR5517449.f_non-breeder.fastq
+Hisat2 for SRR5517449.f_non-breeder done
+```
+
+
+### b. fastqc
+
+```bash
+mkdir -p fastqc_bam
+cd fastqc_bam
+mkdir -p star
+mkdir -p hisat2
+
+nano bam_fastqc.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=bam_fastqc
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=14G
+
+# will access star and hisat2 separately
+spack load fastqc
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
+for file in *.fastq ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
+done
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
+for file in *.fastq ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
+done
+cd /athena/angsd/scratch/tof4003/project/star_liver
+for file in *.fastq ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/star
+done
+
+#then, run multiqc
+cd /athena/angsd/scratch/tof4003/project/fastqc_bam/star
+spack load -r py-multiqc
+multiqc .
+cd /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
+multiqc .
+
+sbatch bam_fastqc.sh
+
+#file download in cmd
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/skn_male_nbreed/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
+
+```
+
+### c. bamqc
+
+```bash
+#running bamqc
+mkdir -p bamqc_liver
+cd bamqc_liver
+nano bamqc_test.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=test_bamqc
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=12G
+
+cd /athena/angsd/scratch/tof4003/project
+/softlib/apps/EL7/BamQC/bin/bamqc -o bamqc_liver star_liver/*.star.Aligned.sortedByCoord.out.bam liver_hisat2/out_male/*.hisat2.sorted.bam
+liver_hisat2/out_female/*.hisat2.sorted.bam
+
+sbatch bamqc_test.sh
+
+ls /athena/angsd/scratch/tof4003/project/bamqc_liver
+
+#file transfer of a sample of files
+
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/skn_male_nbreed/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
+```
+
+#### Output
+
+```
+
+```
+
+# 4. Feature Counts
 
