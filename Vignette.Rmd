@@ -139,7 +139,7 @@ wget -O NMR_ref/NMR_female_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/he
 
 
 #unzip everything (for some reason directly specifying zcat to read .gz file with star returns that I have an extra space before the > in fasta, even though checking using head indicates no problem)
-zcat /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf.gz > /athena/angsd/scratch/ tof4003/project/NMR_ref/maleNMR.gtf
+zcat /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/maleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_male_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_male.fa
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_female_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa
@@ -426,6 +426,12 @@ rm liver_hisat2/out_female/*.sam
 
 sbatch gz.sh
 
+#separate out the female and female files for star
+mkdir -p star_liver/female_out
+mkdir -p star_liver/male_out
+
+mv star_liver/*f_* star_liver/female_out
+mv star_liver/*m_* star_liver/male_out
 ```
 
 #### Output
@@ -519,17 +525,22 @@ nano bam_fastqc.sh
 # will access star and hisat2 separately
 spack load fastqc
 cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
-for file in *.fastq ; do
+for file in *.hisat2.sorted.bam ; do
   echo $file
   fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
 done
 cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
-for file in *.fastq ; do
+for file in *.hisat2.sorted.bam ; do
   echo $file
   fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
 done
-cd /athena/angsd/scratch/tof4003/project/star_liver
-for file in *.fastq ; do
+cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
+for file in *.star.Aligned.sortedByCoord.out.bam ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/star
+done
+cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
+for file in *.star.Aligned.sortedByCoord.out.bam ; do
   echo $file
   fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/star
 done
@@ -544,7 +555,8 @@ multiqc .
 sbatch bam_fastqc.sh
 
 #file download in cmd
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/skn_male_nbreed/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\hisat2_fastqc_bam.html"
+
 
 ```
 
@@ -565,7 +577,9 @@ nano bamqc_test.sh
 #SBATCH --mem=12G
 
 cd /athena/angsd/scratch/tof4003/project
-/softlib/apps/EL7/BamQC/bin/bamqc -o bamqc_liver star_liver/*.star.Aligned.sortedByCoord.out.bam liver_hisat2/out_male/*.hisat2.sorted.bam
+/softlib/apps/EL7/BamQC/bin/bamqc -o bamqc_liver star_liver/female_out/*.star.Aligned.sortedByCoord.out.bam
+star_liver/male_out/*.star.Aligned.sortedByCoord.out.bam
+liver_hisat2/out_male/*.hisat2.sorted.bam
 liver_hisat2/out_female/*.hisat2.sorted.bam
 
 sbatch bamqc_test.sh
@@ -577,11 +591,68 @@ ls /athena/angsd/scratch/tof4003/project/bamqc_liver
 scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/skn_male_nbreed/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
 ```
 
-#### Output
-
-```
-
-```
 
 # 4. Feature Counts
+
+```bash
+
+cd /athena/angsd/scratch/tof4003/project
+
+#will generate count tables for star and hisat2 separately
+mkdir -p featureCounts
+cd featureCounts
+
+nano featCounts.sh
+
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=feat_counts
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=15G
+
+# for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
+cd /athena/angsd/scratch/tof4003/project
+spack load subread
+# for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
+# male and female needs to be done separately (2 references)
+
+featureCounts -a NMR_ref/maleNMR.gtf \
+-o featureCounts/star_featCounts_maleNMR.txt \
+-t exon \
+-g gene_id \
+-f \
+-G NMR_ref/NMR_ref_male.fa \
+star_liver/male_out/*.bam
+
+featureCounts -a NMR_ref/femaleNMR.gtf \
+-o featureCounts/star_featCounts_femaleNMR.txt \
+-t exon \
+-g gene_id \
+-f \
+-G NMR_ref/NMR_ref_female.fa \
+star_liver/female_out/*.bam
+
+featureCounts -a NMR_ref/maleNMR.gtf \
+-o featureCounts/hisat2_featCounts_maleNMR.txt \
+-t exon \
+-g gene_id \
+-f \
+-G NMR_ref/NMR_ref_male.fa \
+liver_hisat2/out_male/*.bam
+
+featureCounts -a NMR_ref/femaleNMR.gtf \
+-o featureCounts/hisat2_featCounts_femaleNMR.txt \
+-t exon \
+-g gene_id \
+-f \
+-G NMR_ref/NMR_ref_female.fa \
+liver_hisat2/out_female/*.bam
+
+sbatch featCounts.sh
+cat *.out
+
+```
+
 
