@@ -13,4 +13,14 @@ Downloaded NMR liver metadata file from ensembl
 ## QC htmls (directory)
 Contains all Bamqc and Fastqc result htmls for quality access of the alignment
 
+## hisat2_featCounts_femaleNMR.txt.summary
+Hisat2 female count table summary
 
+## hisat2_featCounts_maleNMR.txt.summary
+Hisat2 male count table summary
+
+## star_featCounts_femaleNMR.txt.summary
+Star female count table summary
+
+## star_featCounts_maleNMR.txt.summary
+Star male count table summary
