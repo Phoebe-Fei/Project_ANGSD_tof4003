@@ -185,7 +185,7 @@ hisat2_index_NMR_male  maleNMR.gtf.gz  NMR_ref_female.fa
 
 ### b. creating Index
 
-The STAR index for male has already been created in prev. checkpoint using command below.
+The STAR index for male has already been created in prev. Checkpoint using command below. (Edit: I rerun it)
 
 
 ```bash
@@ -196,19 +196,19 @@ nano star_test/ref_gen.sh
 
 #! /bin/bash -l
 #SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
 #SBATCH --nodes=1
-#SBATCH --ntasks=4
-#SBATCH #SBATCH --cpus-per-task=8 #try multiple threads with multiple cpu
+#SBATCH #SBATCH --cpus-per-task=4 #try multiple threads with multiple cpu
 #SBATCH --job-name=REf_gen_STAR
 #SBATCH --time=48:00:00 #HH/MM/SS
 #SBATCH --mem=100G
-#SBATCH --nodelist=buddy.pbtech #specify the node
+
 cd /athena/angsd/scratch/tof4003/project/NMR_ref
 mkdir -p STAR_ref
 #load STAR
 spack load star@2.7.0e
 STAR --runMode genomeGenerate \
---runThreadN 2 \
+--runThreadN 4 \
 --genomeDir STAR_ref \
 --genomeFastaFiles NMR_ref_male.fa \
 --sjdbGTFfile maleNMR.gtf \
@@ -259,14 +259,12 @@ STAR --runMode genomeGenerate \
 --sjdbOverhang 99
 
 sbatch star_liver/star_female_ref.sh
-ls NMR_ref/STAR_ref
 ```
-#### Output
 
 
-### c. Checking Quality of qc files
+### c. Checking Quality of fastqc files
 
-This is done already in Checkpoint1 - see rendered html.
+A subset of the samples is done already in Checkpoint1 - see rendered html.
 
 # 2. Alignment
 
@@ -344,14 +342,16 @@ rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/*.sam
 cd /athena/angsd/scratch/tof4003/project/star_liver
 
 nano star_align.sh
+#star actually gives core-dump issue for male genomes if not enough core is reserved. 
+
 #! /bin/bash -l
 #SBATCH --partition=angsd_class
 #SBATCH --account=angsd_class
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --job-name=STAR_align
 #SBATCH --time=40:00:00 #HH/MM/SS
-#SBATCH --mem=60G
+#SBATCH --mem=90G
 
 #load modules
 spack load star@2.7.0e
@@ -363,7 +363,7 @@ for file in /athena/angsd/scratch/tof4003/project/lvr_male/*.fastq; do
   fv=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 1 )
   suf=$(cut -d "/" -f 8 <<< "$file" | cut -d "." -f 2)
   STAR --runMode alignReads \
-  --runThreadN 4 \
+  --runThreadN 8 \
   --genomeDir /athena/angsd/scratch/tof4003/project/NMR_ref/STAR_ref \
   --readFilesIn $file \
   --outFileNamePrefix $fv.$suf.star. \
@@ -560,6 +560,10 @@ scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fast
 scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/star/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\star_fastqc_bam.html"
 ```
 
+#### Output of Some Selected Features
+
+
+
 ### c. bamqc
 
 ```bash
@@ -588,8 +592,12 @@ ls /athena/angsd/scratch/tof4003/project/bamqc_liver
 
 #file transfer of a sample of files
 
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/skn_male_nbreed/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/bamqc_liver/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
+
+
 ```
+
+#### Output of Some Samples
 
 
 # 4. Feature Counts
@@ -653,6 +661,254 @@ liver_hisat2/out_female/*.bam
 sbatch featCounts.sh
 cat *.out
 
+
+--------------file download
+
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/featureCounts/*.txt "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/featureCounts/*.txt.summary "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003"
+
 ```
 
+#### Output
+
+showing feature counts for 1
+```
+
+        ==========     _____ _    _ ____  _____  ______          _____
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+          v1.6.2
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 11 BAM files                                     ||
+||                           S SRR5517432.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517435.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517436.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517437.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517439.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517440.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517441.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517445.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517446.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517449.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517450.f_non-breeder.hisat2.sorted.bam     ||
+||                                                                            ||
+||             Output file : hisat2_featCounts_femaleNMR.txt                  ||
+||                 Summary : hisat2_featCounts_femaleNMR.txt.summary          ||
+||              Annotation : femaleNMR.gtf (GTF)                              ||
+||      Dir for temp files : featureCounts                                    ||
+||                                                                            ||
+||                 Threads : 1                                                ||
+||                   Level : feature level                                    ||
+||              Paired-end : no                                               ||
+||      Multimapping reads : not counted                                      ||
+|| Multi-overlapping reads : not counted                                      ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file femaleNMR.gtf ...                                     ||
+||    Features : 328743                                                       ||
+||    Meta-features : 31806                                                   ||
+||    Chromosomes/contigs : 460                                               ||
+||                                                                            ||
+|| Loading FASTA contigs : NMR_ref/NMR_ref_female.fa                          ||
+||    4229 contigs were loaded                                                ||
+||                                                                            ||
+|| Process BAM file SRR5517432.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24624992                                                  ||
+||    Successfully assigned reads : 8968581 (36.4%)                           ||
+||    Running time : 0.41 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517435.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26998998                                                  ||
+||    Successfully assigned reads : 9254783 (34.3%)                           ||
+||    Running time : 0.45 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517436.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24683617                                                  ||
+||    Successfully assigned reads : 9094694 (36.8%)                           ||
+||    Running time : 0.40 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517437.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 23891994                                                  ||
+||    Successfully assigned reads : 8321472 (34.8%)                           ||
+||    Running time : 0.41 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517439.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26804951                                                  ||
+||    Successfully assigned reads : 9303414 (34.7%)                           ||
+||    Running time : 0.47 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517440.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24055201                                                  ||
+||    Successfully assigned reads : 9171872 (38.1%)                           ||
+||    Running time : 0.40 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517441.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26251990                                                  ||
+||    Successfully assigned reads : 9936838 (37.9%)                           ||
+||    Running time : 0.44 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517445.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 27278979                                                  ||
+||    Successfully assigned reads : 9862489 (36.2%)                           ||
+||    Running time : 0.46 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517446.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 39704440                                                  ||
+||    Successfully assigned reads : 14759259 (37.2%)                          ||
+||    Running time : 0.65 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517449.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 25478196                                                  ||
+||    Successfully assigned reads : 9415787 (37.0%)                           ||
+||    Running time : 0.42 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517450.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 30450808                                                  ||
+||    Successfully assigned reads : 10357471 (34.0%)                          ||
+||    Running time : 0.50 minutes                                             ||
+||                                                                            ||
+||                         Read assignment finished.                          ||
+||                                                                            ||
+|| Summary of counting results can be found in file "featureCounts/hisat2_fe  ||
+|| atCounts_femaleNMR.txt.summary"                                            ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+```
+
+# 5. Analyze Count Data
+
+### a. Import and process the summary Table
+```{r}
+library(ggplot2)
+library(magrittr)
+direct <- '/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/'
+#hisat2 males & females
+rchisat2f <-paste0(direct,"hisat2_featCounts_femaleNMR.txt.summary") %>%
+  read.table(., header = TRUE)
+
+rchisat2m <-paste0(direct,"hisat2_featCounts_maleNMR.txt.summary") %>%
+  read.table(., header = TRUE)
+
+#star males & females
+rcstarf <-paste0(direct,"star_featCounts_femaleNMR.txt.summary") %>%
+  read.table(., header = TRUE)
+
+rcstarm <-paste0(direct,"star_featCounts_maleNMR.txt.summary") %>%
+  read.table(., header = TRUE)
+```
+Clean the sample names
+
+```{r}
+library(stringr)
+#reassign sample names
+nameliststarm <- str_extract(names(rcstarm), "SRR[0-9]+.(m|f)_[a-z]+")
+namelisthisat2m <- str_extract(names(rchisat2m), "SRR[0-9]+.(m|f)_[a-z]+")
+nameliststarf <- str_extract(names(rcstarf), "SRR[0-9]+.(m|f)_[a-z]+")
+namelisthisat2f <- str_extract(names(rchisat2f), "SRR[0-9]+.(m|f)_[a-z]+")
+```
+```{r}
+#don't want the status to be modified
+names(rcstarm)[2:length(rcstarm)] <- nameliststarm[2:length(nameliststarm)]
+names(rcstarf)[2:length(rcstarf)] <- nameliststarf[2:length(nameliststarf)]
+names(rchisat2m)[2:length(rchisat2m)] <- namelisthisat2m[2:length(namelisthisat2m)]
+names(rchisat2f)[2:length(rchisat2f)] <- namelisthisat2f[2:length(namelisthisat2f)]
+str(rchisat2f)
+str(rchisat2m)
+str(rcstarf)
+str(rcstarm)
+```
+
+Plotting
+```{r}
+library(patchwork)
+library(reshape2)
+#STAR M
+melt_starm <- melt(rcstarm, id.vars = "Status")
+names(melt_starm)[3] <- "Counts"
+names(melt_starm)[2] <- "Sample"
+#remove 0 instances
+melt_starm <- subset(melt_starm, Counts!=0)
+#add a row saying identifying this data
+melt_starm["Type"] <- rep("Feature Count on Male using STAR",nrow(melt_starm))
+#STAR F
+melt_starf <- melt(rcstarf, id.vars = "Status")
+names(melt_starf)[3] <- "Counts"
+names(melt_starf)[2] <- "Sample"
+melt_starf <- subset(melt_starf, Counts!=0)
+melt_starf["Type"] <- rep("Feature Count on Female using STAR",nrow(melt_starf))
+
+#Hisat2 M
+melt_hisat2m <- melt(rchisat2m, id.vars = "Status")
+names(melt_hisat2m)[3] <- "Counts"
+names(melt_hisat2m)[2] <- "Sample"
+melt_hisat2m <- subset(melt_hisat2m, Counts!=0)
+melt_hisat2m["Type"] <- rep("Feature Count on Male using Hisat2",nrow(melt_hisat2m))
+
+#Hisat2 F
+melt_hisat2f <- melt(rchisat2f, id.vars = "Status")
+names(melt_hisat2f)[3] <- "Counts"
+names(melt_hisat2f)[2] <- "Sample"
+melt_hisat2f <- subset(melt_hisat2f, Counts!=0)
+melt_hisat2f["Type"] <- rep("Feature Count on Male using Hisat2",nrow(melt_hisat2f))
+```
+Male Alignment : STAR vs. Hisat2
+
+```{r}
+melt_m <- rbind(melt_starm,melt_hisat2m)
+melt_f <- rbind(melt_starf,melt_hisat2f)
+```
+
+```{r}
+#size figure size
+knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(100,"cm"))
+#set texts size
+theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
+#bar plot the combined graph
+plotm <- ggplot(data = melt_m,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
+plotm
+
+```
+
+```{r}
+#size figure size
+knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(100,"cm"))
+#set texts size
+theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
+#bar plot the combined graph
+plotf <- ggplot(data = melt_f,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
+plotf
+
+```
 
