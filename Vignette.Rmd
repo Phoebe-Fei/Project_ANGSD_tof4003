@@ -169,7 +169,8 @@ SRR5517433.m_breeder.fastq      SRR5517447.m_breeder.fastq
 SRR5517434.m_breeder.fastq      SRR5517448.m_non-breeder.fastq
 SRR5517438.m_breeder.fastq      SRR5517451.m_non-breeder.fastq
 SRR5517442.m_non-breeder.fastq  SRR5517452.m_non-breeder.fastq
-SRR5517443.m_breeder.fastq      SRR5517454.m_breeder.fastq
+SRR5517443.m_breeder.fastq      SRR5517453.m_non-breeder.fastq
+SRR5517454.m_breeder.fastq
 SRR5517444.m_non-breeder.fastq
 
 ```
@@ -471,6 +472,9 @@ Hisat2 for SRR5517452.m_non-breeder done
 Begin SRR5517454.m_breeder.fastq
 93.39% overall alignment rate
 Hisat2 for SRR5517454.m_breeder done
+Begin SRR5517453.m_non-breeder.fastq
+93.80% overall alignment rate
+Hisat2 for SRR5517454.m_non-breeder done
 
 ```
 
@@ -892,7 +896,7 @@ melt_f <- rbind(melt_starf,melt_hisat2f)
 
 ```{r}
 #size figure size
-knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(100,"cm"))
+knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(50,"cm"))
 #set texts size
 theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
 #bar plot the combined graph
@@ -903,12 +907,161 @@ plotm
 
 ```{r}
 #size figure size
-knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(100,"cm"))
+knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(70,"cm"))
 #set texts size
 theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
 #bar plot the combined graph
-plotf <- ggplot(data = melt_f,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
+plotf <- ggplot(data = melt_f,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),width = 1,position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
 plotf
+
 
 ```
 
+### b. create DESeq2 Objects
+
+Import readcounts and assign sample names
+```{r}
+rchisat_f <-paste0(direct,"hisat2_featCounts_femaleNMR.txt") %>% read.table(., header = TRUE)
+rchisat_m <- paste0(direct,"hisat2_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
+rcstar_f <-paste0(direct,"star_featCounts_femaleNMR.txt") %>% read.table(., header = TRUE)
+rcstar_m <- paste0(direct,"star_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
+
+```
+```{r}
+#don't want the status to be modified
+names(rcstar_m)[7:length(rcstar_m)] <- nameliststarm[2:length(nameliststarm)]
+names(rcstar_f)[7:length(rcstar_f)] <- nameliststarf[2:length(nameliststarf)]
+names(rchisat_m)[7:length(rchisat_m)] <- namelisthisat2m[2:length(namelisthisat2m)]
+names(rchisat_f)[7:length(rchisat_f)] <- namelisthisat2f[2:length(namelisthisat2f)]
+
+head(rcstar_m)
+head(rcstar_f)
+head(rchisat_m)
+head(rchisat_f)
+```
+
+Creating DESeq2 Objects
+```{r, eval = FALSE}
+BiocManager::install("DESeq2")
+
+```
+
+```{r, echo = FALSE}
+library(DESeq2)
+```
+
+The files are gigantic, I decide to run RScripts on the terminal
+
+```{r, eval = FALSE}
+library(data.table)
+fwrite(rcstar_m,"rcstar_m.csv",row.names = FALSE)
+fwrite(rcstar_f,"rcstar_f.csv",row.names = FALSE)
+fwrite(rchisat_m,"rchisat_m.csv",row.names = FALSE)
+fwrite(rchisat_f,"rchisat_f.csv",row.names = FALSE)
+```
+
+
+
+```bash
+cd /athena/angsd/scratch/tof4003/project
+mkdir -p Rscripts
+cd Rscripts
+nano makeDESeq.sh
+
+#!/bin/bash
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=feat_counts
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=15G
+
+cd /athena/angsd/scratch/tof4003/project/Rscripts
+spack load -r /bxc56dm
+
+Rscript DESeq2.R
+
+nano DESeq2.R
+
+```
+in DESeq2.R, write in the Rscript below
+
+```{r, echo = FALSE}
+rcstar_m <- read.csv("rcstar_m.csv",header = TRUE)
+rcstar_f<- read.csv("rcstar_f.csv",header = TRUE)
+rchisat_m<- read.csv("rchisat_m.csv",header = TRUE)
+rchisat_f<- read.csv("rchisat_f.csv",header = TRUE)
+#BiocManager::install("DESeq2")
+library(DESeq2)
+#this function joins every element of 2 lists together to have a new list
+#there are so many duplicate names, have to use a dictionary to give them small numbers
+listjoin <- function(l1, l2,l3){
+  new_d <- c("placeholder"=0)
+  new_l <- list()
+  for (i in 1: length(l1)){
+    ns <- paste0(l1[i],"_",l2[i],l3[i])
+    if(ns %in% names(new_d)){
+      add_l<-paste0(ns,"_",new_d[ns])
+      new_l <- append(add_l,new_l)
+      new_d[ns] <- new_d[ns]+1
+    }
+    else{
+      new_l <- append(ns, new_l)
+      new_d[ns]<-1
+    }
+    
+  }
+  return(new_l)
+}
+
+rcstar_m$rows <- listjoin(rcstar_m$Geneid,rcstar_m$Start,rcstar_m$Strand)
+row.names(rcstar_m) <- make.names(rcstar_m$Geneid)
+rcstar_m <- rcstar_m[ ,-c(1:6)]
+sampleinfo_starm <- DataFrame(condition = gsub("SRR+","",names(rcstar_m)),row.names = names(rcstar_m))
+
+DESeq.starm <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_m),
+                                   colData = sample_info_starm,
+                                   design = ~ condition ) 
+
+rcstar_f$rows <- listjoin(rcstar_f$Geneid,rcstar_f$Start,rcstar_f$Strand)
+row.names(rcstar_f) <- make.names(rcstar_f$Geneid)
+rcstar_f <- rcstar_f[ ,-c(1:6)]
+sampleinfo_starf <- DataFrame(condition = gsub("SRR+","",names(rcstar_f)),row.names = names(rcstar_f))
+
+DESeq.starf <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_f),
+                                   colData = sample_info_starf,
+                                   design = ~ condition ) 
+
+
+rchisat_m$rows <- listjoin(rchisat_m$Geneid,rchisat_m$Start,rchisat_m$Strand)
+row.names(rchisat_m) <- make.names(rchisat_m$Geneid)
+rchisat_m <- rchisat_m[ ,-c(1:6)]
+sampleinfo_hisatm <- DataFrame(condition = gsub("SRR+","",names(rchisat_m)),row.names = names(rchisat_m))
+
+DESeq.hisatm <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_m),
+                                   colData = sample_info_starm,
+                                   design = ~ condition ) 
+
+rchisat_f$rows <- listjoin(rchisat_f$Geneid,rchisat_f$Start,rchisat_f$Strand)
+row.names(rchisat_f) <- make.names(rchisat_f$Geneid)
+rchisat_f <- rchisat_f[ ,-c(1:6)]
+sampleinfo_hisatf <- DataFrame(condition = gsub("SRR+","",names(rchisat_f)),row.names = names(rchisat_f))
+
+DESeq.hisatf <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat_f),
+                                   colData = sample_info_hisatf,
+                                   design = ~ condition ) 
+
+save(DESeq.starm, file="DESeq.starm.RData")
+save(DESeq.starf, file="DESeq.starf.RData")
+save(DESeq.hisatm,file="DESeq.hisatm.RData")
+save(DESeq.hisatf,file="DESeq.hisatf.RData")
+```
+
+Download and Upload
+
+```bash
+scp "C:/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/*.csv" tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/Rscripts 
+
+sbatch makeDESeq.sh
+
+```
