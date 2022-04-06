@@ -986,7 +986,7 @@ nano DESeq2.R
 ```
 in DESeq2.R, write in the Rscript below
 
-```{r, echo = FALSE}
+```{r, eval = FALSE}
 rcstar_m <- read.csv("rcstar_m.csv",header = TRUE)
 rcstar_f<- read.csv("rcstar_f.csv",header = TRUE)
 rchisat_m<- read.csv("rchisat_m.csv",header = TRUE)
