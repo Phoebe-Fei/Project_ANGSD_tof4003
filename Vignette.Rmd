@@ -629,12 +629,14 @@ cd /athena/angsd/scratch/tof4003/project
 spack load subread
 # for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
 # male and female needs to be done separately (2 references)
+#deleting the -f flag because we actually want to be mapped to genes
+#set the min length to be 100
 
 featureCounts -a NMR_ref/maleNMR.gtf \
 -o featureCounts/star_featCounts_maleNMR.txt \
 -t exon \
+-d 100 \
 -g gene_id \
--f \
 -G NMR_ref/NMR_ref_male.fa \
 star_liver/male_out/*.bam
 
@@ -642,7 +644,7 @@ featureCounts -a NMR_ref/femaleNMR.gtf \
 -o featureCounts/star_featCounts_femaleNMR.txt \
 -t exon \
 -g gene_id \
--f \
+-d 100 \
 -G NMR_ref/NMR_ref_female.fa \
 star_liver/female_out/*.bam
 
@@ -650,7 +652,7 @@ featureCounts -a NMR_ref/maleNMR.gtf \
 -o featureCounts/hisat2_featCounts_maleNMR.txt \
 -t exon \
 -g gene_id \
--f \
+-d 100 \
 -G NMR_ref/NMR_ref_male.fa \
 liver_hisat2/out_male/*.bam
 
@@ -658,7 +660,7 @@ featureCounts -a NMR_ref/femaleNMR.gtf \
 -o featureCounts/hisat2_featCounts_femaleNMR.txt \
 -t exon \
 -g gene_id \
--f \
+-d 100 \
 -G NMR_ref/NMR_ref_female.fa \
 liver_hisat2/out_female/*.bam
 
@@ -688,26 +690,27 @@ showing feature counts for 1
 
 //========================== featureCounts setting ===========================\\
 ||                                                                            ||
-||             Input files : 11 BAM files                                     ||
-||                           S SRR5517432.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517435.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517436.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517437.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517439.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517440.f_breeder.hisat2.sorted.bam         ||
-||                           S SRR5517441.f_non-breeder.hisat2.sorted.bam     ||
-||                           S SRR5517445.f_non-breeder.hisat2.sorted.bam     ||
-||                           S SRR5517446.f_non-breeder.hisat2.sorted.bam     ||
-||                           S SRR5517449.f_non-breeder.hisat2.sorted.bam     ||
-||                           S SRR5517450.f_non-breeder.hisat2.sorted.bam     ||
+||             Input files : 12 BAM files                                     ||
+||                           S SRR5517433.m_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517434.m_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517438.m_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517442.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517443.m_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517444.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517447.m_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517448.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517451.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517452.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517453.m_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517454.m_breeder.hisat2.sorted.bam         ||
 ||                                                                            ||
-||             Output file : hisat2_featCounts_femaleNMR.txt                  ||
-||                 Summary : hisat2_featCounts_femaleNMR.txt.summary          ||
-||              Annotation : femaleNMR.gtf (GTF)                              ||
+||             Output file : hisat2_featCounts_maleNMR.txt                    ||
+||                 Summary : hisat2_featCounts_maleNMR.txt.summary            ||
+||              Annotation : maleNMR.gtf (GTF)                                ||
 ||      Dir for temp files : featureCounts                                    ||
 ||                                                                            ||
 ||                 Threads : 1                                                ||
-||                   Level : feature level                                    ||
+||                   Level : meta-feature level                               ||
 ||              Paired-end : no                                               ||
 ||      Multimapping reads : not counted                                      ||
 || Multi-overlapping reads : not counted                                      ||
@@ -717,95 +720,102 @@ showing feature counts for 1
 
 //================================= Running ==================================\\
 ||                                                                            ||
-|| Load annotation file femaleNMR.gtf ...                                     ||
-||    Features : 328743                                                       ||
-||    Meta-features : 31806                                                   ||
-||    Chromosomes/contigs : 460                                               ||
+|| Load annotation file maleNMR.gtf ...                                       ||
+||    Features : 311975                                                       ||
+||    Meta-features : 32747                                                   ||
+||    Chromosomes/contigs : 3176                                              ||
 ||                                                                            ||
-|| Loading FASTA contigs : NMR_ref/NMR_ref_female.fa                          ||
-||    4229 contigs were loaded                                                ||
+|| Loading FASTA contigs : NMR_ref/NMR_ref_male.fa                            ||
+||    39267 contigs were loaded                                               ||
 ||                                                                            ||
-|| Process BAM file SRR5517432.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517433.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 24624992                                                  ||
-||    Successfully assigned reads : 8968581 (36.4%)                           ||
-||    Running time : 0.41 minutes                                             ||
+||    Total reads : 31648521                                                  ||
+||    Successfully assigned reads : 17859080 (56.4%)                          ||
+||    Running time : 0.68 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517435.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517434.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 26998998                                                  ||
-||    Successfully assigned reads : 9254783 (34.3%)                           ||
-||    Running time : 0.45 minutes                                             ||
+||    Total reads : 28006735                                                  ||
+||    Successfully assigned reads : 14121939 (50.4%)                          ||
+||    Running time : 0.58 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517436.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517438.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 24683617                                                  ||
-||    Successfully assigned reads : 9094694 (36.8%)                           ||
-||    Running time : 0.40 minutes                                             ||
+||    Total reads : 31671946                                                  ||
+||    Successfully assigned reads : 17615218 (55.6%)                          ||
+||    Running time : 0.67 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517437.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517442.m_non-breeder.hisat2.sorted.bam...             ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 23891994                                                  ||
-||    Successfully assigned reads : 8321472 (34.8%)                           ||
-||    Running time : 0.41 minutes                                             ||
+||    Total reads : 35668328                                                  ||
+||    Successfully assigned reads : 20403671 (57.2%)                          ||
+||    Running time : 0.62 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517439.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517443.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 26804951                                                  ||
-||    Successfully assigned reads : 9303414 (34.7%)                           ||
-||    Running time : 0.47 minutes                                             ||
+||    Total reads : 28201076                                                  ||
+||    Successfully assigned reads : 16133122 (57.2%)                          ||
+||    Running time : 0.60 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517440.f_breeder.hisat2.sorted.bam...                 ||
+|| Process BAM file SRR5517444.m_non-breeder.hisat2.sorted.bam...             ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 24055201                                                  ||
-||    Successfully assigned reads : 9171872 (38.1%)                           ||
-||    Running time : 0.40 minutes                                             ||
+||    Total reads : 33773769                                                  ||
+||    Successfully assigned reads : 19822237 (58.7%)                          ||
+||    Running time : 0.69 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517441.f_non-breeder.hisat2.sorted.bam...             ||
+|| Process BAM file SRR5517447.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 26251990                                                  ||
-||    Successfully assigned reads : 9936838 (37.9%)                           ||
+||    Total reads : 27634289                                                  ||
+||    Successfully assigned reads : 13964052 (50.5%)                          ||
+||    Running time : 0.51 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517448.m_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 36089676                                                  ||
+||    Successfully assigned reads : 18205088 (50.4%)                          ||
+||    Running time : 0.68 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517451.m_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 33681691                                                  ||
+||    Successfully assigned reads : 17988655 (53.4%)                          ||
+||    Running time : 0.61 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517452.m_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 25749115                                                  ||
+||    Successfully assigned reads : 14528459 (56.4%)                          ||
 ||    Running time : 0.44 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517445.f_non-breeder.hisat2.sorted.bam...             ||
+|| Process BAM file SRR5517453.m_non-breeder.hisat2.sorted.bam...             ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 27278979                                                  ||
-||    Successfully assigned reads : 9862489 (36.2%)                           ||
-||    Running time : 0.46 minutes                                             ||
+||    Total reads : 28856411                                                  ||
+||    Successfully assigned reads : 16960849 (58.8%)                          ||
+||    Running time : 0.55 minutes                                             ||
 ||                                                                            ||
-|| Process BAM file SRR5517446.f_non-breeder.hisat2.sorted.bam...             ||
+|| Process BAM file SRR5517454.m_breeder.hisat2.sorted.bam...                 ||
 ||    Single-end reads are included.                                          ||
 ||    Assign reads to features...                                             ||
-||    Total reads : 39704440                                                  ||
-||    Successfully assigned reads : 14759259 (37.2%)                          ||
-||    Running time : 0.65 minutes                                             ||
-||                                                                            ||
-|| Process BAM file SRR5517449.f_non-breeder.hisat2.sorted.bam...             ||
-||    Single-end reads are included.                                          ||
-||    Assign reads to features...                                             ||
-||    Total reads : 25478196                                                  ||
-||    Successfully assigned reads : 9415787 (37.0%)                           ||
-||    Running time : 0.42 minutes                                             ||
-||                                                                            ||
-|| Process BAM file SRR5517450.f_non-breeder.hisat2.sorted.bam...             ||
-||    Single-end reads are included.                                          ||
-||    Assign reads to features...                                             ||
-||    Total reads : 30450808                                                  ||
-||    Successfully assigned reads : 10357471 (34.0%)                          ||
-||    Running time : 0.50 minutes                                             ||
+||    Total reads : 32775421                                                  ||
+||    Successfully assigned reads : 18034481 (55.0%)                          ||
+||    Running time : 0.56 minutes                                             ||
 ||                                                                            ||
 ||                         Read assignment finished.                          ||
 ||                                                                            ||
 || Summary of counting results can be found in file "featureCounts/hisat2_fe  ||
-|| atCounts_femaleNMR.txt.summary"                                            ||
+|| atCounts_maleNMR.txt.summary"                                              ||
 ||                                                                            ||
 \\===================== http://subread.sourceforge.net/ ======================//
 
@@ -948,51 +958,7 @@ BiocManager::install("DESeq2")
 
 ```{r, echo = FALSE}
 library(DESeq2)
-```
 
-The files are gigantic, I decide to run RScripts on the terminal
-
-```{r, eval = FALSE}
-library(data.table)
-fwrite(rcstar_m,"rcstar_m.csv",row.names = FALSE)
-fwrite(rcstar_f,"rcstar_f.csv",row.names = FALSE)
-fwrite(rchisat_m,"rchisat_m.csv",row.names = FALSE)
-fwrite(rchisat_f,"rchisat_f.csv",row.names = FALSE)
-```
-
-
-
-```bash
-cd /athena/angsd/scratch/tof4003/project
-mkdir -p Rscripts
-cd Rscripts
-nano makeDESeq.sh
-
-#!/bin/bash
-#SBATCH --partition=angsd_class
-#SBATCH --account=angsd_class
-#SBATCH --nodes=1
-#SBATCH --job-name=feat_counts
-#SBATCH --time=12:00:00 #HH/MM/SS
-#SBATCH --mem=15G
-
-cd /athena/angsd/scratch/tof4003/project/Rscripts
-spack load -r /bxc56dm
-
-Rscript DESeq2.R
-
-nano DESeq2.R
-
-```
-in DESeq2.R, write in the Rscript below
-
-```{r, eval = FALSE}
-rcstar_m <- read.csv("rcstar_m.csv",header = TRUE)
-rcstar_f<- read.csv("rcstar_f.csv",header = TRUE)
-rchisat_m<- read.csv("rchisat_m.csv",header = TRUE)
-rchisat_f<- read.csv("rchisat_f.csv",header = TRUE)
-#BiocManager::install("DESeq2")
-library(DESeq2)
 #this function joins every element of 2 lists together to have a new list
 #there are so many duplicate names, have to use a dictionary to give them small numbers
 listjoin <- function(l1, l2,l3){

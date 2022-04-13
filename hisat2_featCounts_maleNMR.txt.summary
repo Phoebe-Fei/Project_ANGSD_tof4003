@@ -1,5 +1,5 @@
 Status	liver_hisat2/out_male/SRR5517433.m_breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517434.m_breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517438.m_breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517442.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517443.m_breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517444.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517447.m_breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517448.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517451.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517452.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517453.m_non-breeder.hisat2.sorted.bam	liver_hisat2/out_male/SRR5517454.m_breeder.hisat2.sorted.bam
-Assigned	11530575	9668380	11389937	13022206	10297517	12599230	9828577	13826586	11595896	9309601	10943195	11858046
+Assigned	17859080	14121939	17615218	20403671	16133122	19822237	13964052	18205088	17988655	14528459	16960849	18034481
 Unassigned_Unmapped	2053972	1740751	1931813	1918327	1538286	1919436	1668172	2424835	2985572	1442790	1599735	1931583
 Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0
@@ -10,4 +10,4 @@ Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Nonjunction	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_NoFeatures	5417746	6399932	5857157	6554375	4918386	5610417	6033878	7171164	6035712	4612725	4546262	6300589
 Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0	0
-Unassigned_Ambiguity	6865477	4920288	6821998	8167521	6381807	8005947	4671207	5271723	6989384	5727606	6671746	6761474
+Unassigned_Ambiguity	536972	466729	596717	786056	546202	782940	535732	893221	596625	508748	654092	585039

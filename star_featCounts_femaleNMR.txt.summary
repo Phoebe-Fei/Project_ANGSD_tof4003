@@ -1,5 +1,5 @@
 Status	star_liver/female_out/SRR5517432.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517435.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517436.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517437.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517439.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517440.f_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517441.f_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517445.f_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517446.f_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517449.f_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/female_out/SRR5517450.f_non-breeder.star.Aligned.sortedByCoord.out.bam
-Assigned	9461133	9752780	9650425	8815831	9760353	9920885	10460509	10415869	15558381	9877959	10833423
+Assigned	16536762	17136033	16076232	14907611	18581087	14710190	18138230	17498923	26021778	17841546	20197530
 Unassigned_Unmapped	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0
@@ -10,4 +10,4 @@ Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Nonjunction	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_NoFeatures	4006020	5730589	4237850	4840223	3856268	4668212	3987501	4745424	6623694	3562384	5343379
 Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0
-Unassigned_Ambiguity	7501349	7773654	6852108	6486149	9271883	5231126	8200895	7480964	11180369	8479369	9886555
+Unassigned_Ambiguity	425720	390401	426301	394369	451149	441821	523174	397910	716972	515782	522448
