@@ -841,6 +841,10 @@ rcstarf <-paste0(direct,"star_featCounts_femaleNMR.txt.summary") %>%
 
 rcstarm <-paste0(direct,"star_featCounts_maleNMR.txt.summary") %>%
   read.table(., header = TRUE)
+
+#hisat2f has an extra column by mistake
+#names(rchisat2f)
+rchisat2f<- subset(rchisat2f, select = -`liver_hisat2.out_female...fastq.hisat2.sorted.bam`)
 ```
 Clean the sample names
 
@@ -857,6 +861,7 @@ namelisthisat2f <- str_extract(names(rchisat2f), "SRR[0-9]+.(m|f)_[a-z]+")
 names(rcstarm)[2:length(rcstarm)] <- nameliststarm[2:length(nameliststarm)]
 names(rcstarf)[2:length(rcstarf)] <- nameliststarf[2:length(nameliststarf)]
 names(rchisat2m)[2:length(rchisat2m)] <- namelisthisat2m[2:length(namelisthisat2m)]
+
 names(rchisat2f)[2:length(rchisat2f)] <- namelisthisat2f[2:length(namelisthisat2f)]
 str(rchisat2f)
 str(rchisat2m)
@@ -935,6 +940,11 @@ rchisat_f <-paste0(direct,"hisat2_featCounts_femaleNMR.txt") %>% read.table(., h
 rchisat_m <- paste0(direct,"hisat2_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
 rcstar_f <-paste0(direct,"star_featCounts_femaleNMR.txt") %>% read.table(., header = TRUE)
 rcstar_m <- paste0(direct,"star_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
+```
+```{r}
+#clean hisat2f extra column
+#names(rchisat_f)
+rchisat_f<- subset(rchisat_f, select = -`liver_hisat2.out_female...fastq.hisat2.sorted.bam`)
 
 ```
 ```{r}
@@ -958,76 +968,49 @@ BiocManager::install("DESeq2")
 
 ```{r, echo = FALSE}
 library(DESeq2)
-
-#this function joins every element of 2 lists together to have a new list
-#there are so many duplicate names, have to use a dictionary to give them small numbers
-listjoin <- function(l1, l2,l3){
-  new_d <- c("placeholder"=0)
-  new_l <- list()
-  for (i in 1: length(l1)){
-    ns <- paste0(l1[i],"_",l2[i],l3[i])
-    if(ns %in% names(new_d)){
-      add_l<-paste0(ns,"_",new_d[ns])
-      new_l <- append(add_l,new_l)
-      new_d[ns] <- new_d[ns]+1
-    }
-    else{
-      new_l <- append(ns, new_l)
-      new_d[ns]<-1
-    }
-    
-  }
-  return(new_l)
-}
-
-rcstar_m$rows <- listjoin(rcstar_m$Geneid,rcstar_m$Start,rcstar_m$Strand)
+#Star Males
 row.names(rcstar_m) <- make.names(rcstar_m$Geneid)
 rcstar_m <- rcstar_m[ ,-c(1:6)]
 sampleinfo_starm <- DataFrame(condition = gsub("SRR+","",names(rcstar_m)),row.names = names(rcstar_m))
 
 DESeq.starm <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_m),
-                                   colData = sample_info_starm,
+                                   colData = sampleinfo_starm,
                                    design = ~ condition ) 
+```
 
-rcstar_f$rows <- listjoin(rcstar_f$Geneid,rcstar_f$Start,rcstar_f$Strand)
+```{r}
+# Star Females
 row.names(rcstar_f) <- make.names(rcstar_f$Geneid)
 rcstar_f <- rcstar_f[ ,-c(1:6)]
 sampleinfo_starf <- DataFrame(condition = gsub("SRR+","",names(rcstar_f)),row.names = names(rcstar_f))
 
 DESeq.starf <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_f),
-                                   colData = sample_info_starf,
+                                   colData = sampleinfo_starf,
                                    design = ~ condition ) 
 
+```
 
-rchisat_m$rows <- listjoin(rchisat_m$Geneid,rchisat_m$Start,rchisat_m$Strand)
+```{r}
+# Hisat2 Males
 row.names(rchisat_m) <- make.names(rchisat_m$Geneid)
 rchisat_m <- rchisat_m[ ,-c(1:6)]
 sampleinfo_hisatm <- DataFrame(condition = gsub("SRR+","",names(rchisat_m)),row.names = names(rchisat_m))
 
 DESeq.hisatm <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar_m),
-                                   colData = sample_info_starm,
+                                   colData = sampleinfo_hisatm,
                                    design = ~ condition ) 
+```
 
-rchisat_f$rows <- listjoin(rchisat_f$Geneid,rchisat_f$Start,rchisat_f$Strand)
+```{r}
+#Hisat2 Females
 row.names(rchisat_f) <- make.names(rchisat_f$Geneid)
-rchisat_f <- rchisat_f[ ,-c(1:6)]
+rchisat_f <- rchisat_f[ ,-c(1:7)]
+
+
 sampleinfo_hisatf <- DataFrame(condition = gsub("SRR+","",names(rchisat_f)),row.names = names(rchisat_f))
 
 DESeq.hisatf <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat_f),
-                                   colData = sample_info_hisatf,
+                                   colData = sampleinfo_hisatf,
                                    design = ~ condition ) 
-
-save(DESeq.starm, file="DESeq.starm.RData")
-save(DESeq.starf, file="DESeq.starf.RData")
-save(DESeq.hisatm,file="DESeq.hisatm.RData")
-save(DESeq.hisatf,file="DESeq.hisatf.RData")
 ```
 
-Download and Upload
-
-```bash
-scp "C:/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/*.csv" tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/Rscripts 
-
-sbatch makeDESeq.sh
-
-```
