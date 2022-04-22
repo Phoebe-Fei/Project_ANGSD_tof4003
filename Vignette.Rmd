@@ -265,7 +265,59 @@ sbatch star_liver/star_female_ref.sh
 
 ### c. Checking Quality of fastqc files
 
-A subset of the samples is done already in Checkpoint1 - see rendered html.
+Running fastqc, then Multiqc on the fastq files
+
+```bash
+cd /athena/angsd/scratch/tof4003/project
+mkdir -p fastq_qc
+cd fastq_qc
+nano fastqc.sh 
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=fastqc
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=8G
+
+spack load fastqc
+cd /athena/angsd/scratch/tof4003/project/lvr_male
+for file in *.fastq.gz ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastq_qc
+done
+cd /athena/angsd/scratch/tof4003/project/lvr_female
+for file in *.fastq.gz ; do
+  echo $file
+  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastq_qc
+done
+#then, run a multiqc
+cd /athena/angsd/scratch/tof4003/project/fastq_qc
+spack load -r py-multiqc
+multiqc .
+
+sbatch fastqc.sh
+
+ls fastq_qc
+
+-exit-
+#file download in cmd
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastq_qc/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/fastqc_report.html"
+
+````
+
+#### Output
+
+**Sequence Counts**
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/Sequence_Counts.png)
+
+**GC Contents**
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/GC content.png)
+**Duplication Level**
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/Duplication Level.png)
+
+The quality, GC contents and duplication level look good - very likely, the adaptors are already trimmed. I will carry on without using trimgalore. 
+There is a test on trimgalore with 1 sequence and shows that there is no much difference - see checkpoint1 html file.
 
 # 2. Alignment
 
@@ -304,13 +356,15 @@ for file in *.fastq; do
   echo "Begin $file"
   fv=$(cut -d "." -f 1 <<< "$file")
   suf=$(cut -d "." -f 2 <<< "$file")
-  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_male/HISAT2_NMR_male -U $file > /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_male/HISAT2_NMR_male --summary-file $fv.$suf.summary.txt -U $file -S /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam
   #use samtools to covert to bam, sort& index
   #sort & covert to bam
   samtools view -b /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
   #index
   samtools index /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sorted.bam
   echo "Hisat2 for $fv.$suf done"
+  #remove .sam files to free up space
+  rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/$fv.$suf.hisat2.sam
 done
 
 #females
@@ -321,20 +375,19 @@ for file in *.fastq; do
   echo "Begin $file"
   fv=$(cut -d "." -f 1 <<< "$file")
   suf=$(cut -d "." -f 2 <<< "$file")
-  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_female/HISAT2_NMR_female -U $file > /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam
+  hisat2 -q -p 2 -x /athena/angsd/scratch/tof4003/project/NMR_ref/hisat2_index_NMR_female/HISAT2_NMR_female --summary-file $fv.$suf.summary.txt -U $file -S /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam
   #use samtools to covert to bam, sort& index
   #sort & covert to bam
   samtools view -b /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam | samtools sort -o /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
   #index
   samtools index /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sorted.bam
   echo "Hisat2 for $fv.$suf done"
+  #remove .sam files to free up space
+  rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/$fv.$suf.hisat2.sam
 done
 
 sbatch hisat2_script.sh
 
-#remove .sam files to free up space
-rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female/*.sam
-rm /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male/*.sam
 ```
 
 ### b. STAR
@@ -396,15 +449,11 @@ sbatch star_align.sh
 
 # 3.  Quality Check
 
-### a. clearing the file and quick check in the folder
+### a. clearing the files
 
 ```bash
 cd /athena/angsd/scratch/tof4003/project
 
-#look at hisat2 alignment status
-cat liver_hisat2/slurm-8956337.out | egrep "alignment | SRR.+"
-#there is a separate file for females
-cat liver_hisat2/slurm-8959476.out | egrep "alignment | SRR.+"
 
 #freeing some memories
 nano gz.sh
@@ -435,88 +484,23 @@ mv star_liver/*f_* star_liver/female_out
 mv star_liver/*m_* star_liver/male_out
 ```
 
-#### Output
 
-Hisat2 male alignment (the job was killed before all female was done so I deleted the female alignments and reran, also removed below the records for females in slurm-8956337.out)
-```
-Begin SRR5517433.m_breeder.fastq
-92.72% overall alignment rate
-Hisat2 for SRR5517433.m_breeder done
-Begin SRR5517434.m_breeder.fastq
-93.00% overall alignment rate
-Hisat2 for SRR5517434.m_breeder done
-Begin SRR5517438.m_breeder.fastq
-93.16% overall alignment rate
-Hisat2 for SRR5517438.m_breeder done
-Begin SRR5517442.m_non-breeder.fastq
-94.02% overall alignment rate
-Hisat2 for SRR5517442.m_non-breeder done
-Begin SRR5517443.m_breeder.fastq
-93.89% overall alignment rate
-Hisat2 for SRR5517443.m_breeder done
-Begin SRR5517444.m_non-breeder.fastq
-93.69% overall alignment rate
-Hisat2 for SRR5517444.m_non-breeder done
-Begin SRR5517447.m_breeder.fastq
-93.17% overall alignment rate
-Hisat2 for SRR5517447.m_breeder done
-Begin SRR5517448.m_non-breeder.fastq
-92.37% overall alignment rate
-Hisat2 for SRR5517448.m_non-breeder done
-Begin SRR5517451.m_non-breeder.fastq
-90.07% overall alignment rate
-Hisat2 for SRR5517451.m_non-breeder done
-Begin SRR5517452.m_non-breeder.fastq
-93.72% overall alignment rate
-Hisat2 for SRR5517452.m_non-breeder done
-Begin SRR5517454.m_breeder.fastq
-93.39% overall alignment rate
-Hisat2 for SRR5517454.m_breeder done
-Begin SRR5517453.m_non-breeder.fastq
-93.80% overall alignment rate
-Hisat2 for SRR5517454.m_non-breeder done
+### b. Multiqc on the Output Reports
 
-```
-
-Hisat2 female alignment
-```
-Begin SRR5517432.f_breeder.fastq
-93.37% overall alignment rate
-Hisat2 for SRR5517432.f_breeder done
-Begin SRR5517435.f_breeder.fastq
-93.33% overall alignment rate
-Hisat2 for SRR5517435.f_breeder done
-Begin SRR5517436.f_breeder.fastq
-92.50% overall alignment rate
-Hisat2 for SRR5517436.f_breeder done
-Begin SRR5517437.f_breeder.fastq
-92.23% overall alignment rate
-Hisat2 for SRR5517437.f_breeder done
-Begin SRR5517439.f_breeder.fastq
-92.76% overall alignment rate
-Hisat2 for SRR5517439.f_breeder done
-Begin SRR5517440.f_breeder.fastq
-Hisat2 for SRR5517440.f_breeder done
-Begin SRR5517441.f_non-breeder.fastq
-Hisat2 for SRR5517441.f_non-breeder done
-Begin SRR5517445.f_non-breeder.fastq
-Hisat2 for SRR5517445.f_non-breeder done
-Begin SRR5517446.f_non-breeder.fastq
-Hisat2 for SRR5517446.f_non-breeder done
-Begin SRR5517449.f_non-breeder.fastq
-Hisat2 for SRR5517449.f_non-breeder done
-```
-
-
-### b. fastqc
 
 ```bash
-mkdir -p fastqc_bam
-cd fastqc_bam
+cd /athena/angsd/scratch/tof4003/project
+mkdir -p alignment_repo
+cd alignment_repo
 mkdir -p star
 mkdir -p hisat2
+#copy the log files to directories 
+cp /athena/angsd/scratch/tof4003/project/star_liver/male_out/*.Log.final.out star
+cp /athena/angsd/scratch/tof4003/project/star_liver/female_out/*.Log.final.out star
+cp /athena/angsd/scratch/tof4003/project/liver_hisat2/male_out/*.txt hisat2
+cp /athena/angsd/scratch/tof4003/project/liver_hisat2/female_out/*.txt hisat2
 
-nano bam_fastqc.sh
+nano align_multiqc.sh
 
 #! /bin/bash -l
 #SBATCH --partition=angsd_class
@@ -526,83 +510,26 @@ nano bam_fastqc.sh
 #SBATCH --time=12:00:00 #HH/MM/SS
 #SBATCH --mem=14G
 
-# will access star and hisat2 separately
-spack load fastqc
-cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
-for file in *.hisat2.sorted.bam ; do
-  echo $file
-  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
-done
-cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
-for file in *.hisat2.sorted.bam ; do
-  echo $file
-  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
-done
-cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
-for file in *.star.Aligned.sortedByCoord.out.bam ; do
-  echo $file
-  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/star
-done
-cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
-for file in *.star.Aligned.sortedByCoord.out.bam ; do
-  echo $file
-  fastqc $file -o /athena/angsd/scratch/tof4003/project/fastqc_bam/star
-done
-
-#then, run multiqc
-cd /athena/angsd/scratch/tof4003/project/fastqc_bam/star
+cd /athena/angsd/scratch/tof4003/project/alignment_repo
+#run multiqc
 spack load -r py-multiqc
+cd star
 multiqc .
-cd /athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2
+cd /athena/angsd/scratch/tof4003/project/alignment_repo/hisat2
 multiqc .
 
-sbatch bam_fastqc.sh
+sbatch align_multiqc.sh
 
 #file download in cmd
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/hisat2/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\hisat2_fastqc_bam.html"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/alignment_repo/hisat2/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/hisat2_qc.html"
 
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fastqc_bam/star/multiqc_report.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls\star_fastqc_bam.html"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/alignment_repo/star/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/star_qc.html"
 ```
 
 #### Output of Some Selected Features
 
-
-
-### c. bamqc
-
-```bash
-#running bamqc
-mkdir -p bamqc_liver
-cd bamqc_liver
-nano bamqc_test.sh
-
-#! /bin/bash -l
-#SBATCH --partition=angsd_class
-#SBATCH --account=angsd_class
-#SBATCH --nodes=1
-#SBATCH --job-name=test_bamqc
-#SBATCH --time=12:00:00 #HH/MM/SS
-#SBATCH --mem=12G
-
-cd /athena/angsd/scratch/tof4003/project
-/softlib/apps/EL7/BamQC/bin/bamqc -o bamqc_liver star_liver/female_out/*.star.Aligned.sortedByCoord.out.bam
-star_liver/male_out/*.star.Aligned.sortedByCoord.out.bam
-liver_hisat2/out_male/*.hisat2.sorted.bam
-liver_hisat2/out_female/*.hisat2.sorted.bam
-
-sbatch bamqc_test.sh
-
-ls /athena/angsd/scratch/tof4003/project/bamqc_liver
-
-#file transfer of a sample of files
-
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/bamqc_liver/*.html "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003\QC htmls"
-
-
-```
-
-#### Output of Some Samples
-
+**STAR Alignment Scores**
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/star_alignment_plot.png)
 
 # 4. Feature Counts
 
@@ -630,12 +557,10 @@ spack load subread
 # for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
 # male and female needs to be done separately (2 references)
 #deleting the -f flag because we actually want to be mapped to genes
-#set the min length to be 100
 
 featureCounts -a NMR_ref/maleNMR.gtf \
 -o featureCounts/star_featCounts_maleNMR.txt \
 -t exon \
--d 100 \
 -g gene_id \
 -G NMR_ref/NMR_ref_male.fa \
 star_liver/male_out/*.bam
@@ -644,7 +569,6 @@ featureCounts -a NMR_ref/femaleNMR.gtf \
 -o featureCounts/star_featCounts_femaleNMR.txt \
 -t exon \
 -g gene_id \
--d 100 \
 -G NMR_ref/NMR_ref_female.fa \
 star_liver/female_out/*.bam
 
@@ -652,7 +576,6 @@ featureCounts -a NMR_ref/maleNMR.gtf \
 -o featureCounts/hisat2_featCounts_maleNMR.txt \
 -t exon \
 -g gene_id \
--d 100 \
 -G NMR_ref/NMR_ref_male.fa \
 liver_hisat2/out_male/*.bam
 
@@ -660,7 +583,6 @@ featureCounts -a NMR_ref/femaleNMR.gtf \
 -o featureCounts/hisat2_featCounts_femaleNMR.txt \
 -t exon \
 -g gene_id \
--d 100 \
 -G NMR_ref/NMR_ref_female.fa \
 liver_hisat2/out_female/*.bam
 
@@ -827,7 +749,7 @@ showing feature counts for 1
 ```{r}
 library(ggplot2)
 library(magrittr)
-direct <- '/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/'
+direct <- '/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/'
 #hisat2 males & females
 rchisat2f <-paste0(direct,"hisat2_featCounts_femaleNMR.txt.summary") %>%
   read.table(., header = TRUE)
@@ -909,9 +831,9 @@ melt_m <- rbind(melt_starm,melt_hisat2m)
 melt_f <- rbind(melt_starf,melt_hisat2f)
 ```
 
-```{r}
+```{r fig.width = 10, fig.height = 15}
 #size figure size
-knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(50,"cm"))
+#knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(50,"cm"))
 #set texts size
 theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
 #bar plot the combined graph
@@ -920,9 +842,9 @@ plotm
 
 ```
 
-```{r}
+```{r fig.width = 10, fig.height = 15}
 #size figure size
-knitr::opts_chunk$set(fig.width=unit(55,"cm"), fig.height=unit(70,"cm"))
+#knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(70,"cm"))
 #set texts size
 theme_set(theme(legend.position = "bottom", legend.key.size = unit(0.2, 'cm'),axis.text=element_text(size=8), axis.title=element_text(size=8)))
 #bar plot the combined graph
@@ -967,7 +889,7 @@ BiocManager::install("DESeq2")
 ```
 
 ```{r, echo = FALSE}
-library(DESeq2)
+library("DESeq2")
 #Star Males
 row.names(rcstar_m) <- make.names(rcstar_m$Geneid)
 rcstar_m <- rcstar_m[ ,-c(1:6)]
@@ -1013,4 +935,10 @@ DESeq.hisatf <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat_f),
                                    colData = sampleinfo_hisatf,
                                    design = ~ condition ) 
 ```
+
+2. run multiQC on star log file and hisat2 slurm file (rename the file)
+3. RSeQC/QoRTs on bam file & gtf (instead of bamqc)
+4. Only keep the ones with same gene name between male & female, male and female should be in one object (cbind) design = ~ condition + sex 
+
+5. GFF files 
 
