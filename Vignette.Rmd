@@ -481,12 +481,161 @@ scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/alig
 
 **STAR Alignment Scores**
 ![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/star_alignment_plot.png)
-### c. RSeQC/QoRTs on bam file & gtf
+### c. RSeQC on bam file
 
 need to download .bed file
+
+**.bed field input in UCSC**
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/bed input.png)
 ```bash
+cd /athena/angsd/scratch/tof4003/project
+mkdir -p RSeQC
+--exit--
+scp "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/NMR_female_ref.gz" tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/RSeQC/
+
+cd /athena/angsd/scratch/tof4003/project/RSeQC
+gunzip NMR_female_ref.gz
+mv NMR_female_ref NMR_female_ref.bed
+```
+
+distribution
+
+```bash
+mkdir -p distribution
+mkdir -p distribution/star
+mkdir -p distribution/hisat2
+nano dis.sh
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=distribution
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=8G
+
+spack load -r py-rseqc@2.6.4
+#star
+cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ read_distribution.py -i ${file} \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}${suf}_rseqc_distribution.out
+done
+cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ read_distribution.py -i ${file} \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}${suf}_rseqc_distribution.out
+done
+
+#hisat2
+
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/male_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ read_distribution.py -i ${file} \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}${suf}_rseqc_distribution.out
+done
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/female_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ read_distribution.py -i ${file} \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}${suf}_rseqc_distribution.out
+done
+
+#run multiqc
+spack load -r py-multiqc
+cd /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star
+multiqc .
+cd /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2
+multiqc .
+
+sbatch dis.sh
 
 ```
+
+coverage
+
+```bash
+cd /athena/angsd/scratch/tof4003/project/RSeQC
+mkdir -p coverage
+mkdir -p coverage/star
+mkdir -p coverage/hisat2
+
+nano coverage.sh
+#! /bin/bash -l
+#SBATCH --partition=angsd_class
+#SBATCH --account=angsd_class
+#SBATCH --nodes=1
+#SBATCH --job-name=coverage
+#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --mem=8G
+spack load -r py-rseqc@2.6.4
+
+#star
+cd cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ geneBody_coverage.py -i $file \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}${suf}_rseqc_coverage.out
+done
+
+cd cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ geneBody_coverage.py -i $file \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}${suf}_rseqc_coverage.out
+done
+
+#hisat2
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/male_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ geneBody_coverage.py -i $file \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}${suf}_rseqc_coverage.out
+done
+
+cd cd /athena/angsd/scratch/tof4003/project/liver_hisat2/female_out
+for file in *.bam; do
+ echo $file
+ fv=$(cut -d "." -f 1 )
+ suf=$(cut -d "." -f 2)
+ geneBody_coverage.py -i $file \
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}${suf}_rseqc_coverage.out
+done
+
+#run multiqc
+spack load -r py-multiqc
+cd /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star
+multiqc .
+cd /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2
+multiqc .
+
+sbatch coverage.sh
+```
+
 
 
 # 4. Feature Counts
@@ -555,8 +704,7 @@ cat *.out
 
 --------------file download
 
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/featureCounts/*.txt "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003"
-scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/featureCounts/*.txt.summary "C:\Users\tof4003\Desktop\WCM\W2022\CMPB 5004\Project\ANGSD Project tof4003"
+scp -r tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/featureCounts "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003"
 
 ```
 
@@ -587,10 +735,6 @@ rcstarf <-paste0(direct,"star_featCounts_femaleNMR.txt.summary") %>%
 
 rcstarm <-paste0(direct,"star_featCounts_maleNMR.txt.summary") %>%
   read.table(., header = TRUE)
-
-#hisat2f has an extra column by mistake
-#names(rchisat2f)
-rchisat2f<- subset(rchisat2f, select = -`liver_hisat2.out_female...fastq.hisat2.sorted.bam`)
 ```
 Clean the sample names
 
@@ -687,18 +831,13 @@ rchisat_m <- paste0(direct,"hisat2_featCounts_maleNMR.txt") %>% read.table(., he
 rcstar_f <-paste0(direct,"star_featCounts_femaleNMR.txt") %>% read.table(., header = TRUE)
 rcstar_m <- paste0(direct,"star_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
 ```
-```{r}
-#clean hisat2f extra column
-#names(rchisat_f)
-rchisat_f<- subset(rchisat_f, select = -`liver_hisat2.out_female...fastq.hisat2.sorted.bam`)
 
-```
 ```{r}
 #don't want the status to be modified
-names(rcstar_m)[7:length(rcstar_m)] <- nameliststarm[2:length(nameliststarm)]
-names(rcstar_f)[7:length(rcstar_f)] <- nameliststarf[2:length(nameliststarf)]
-names(rchisat_m)[7:length(rchisat_m)] <- namelisthisat2m[2:length(namelisthisat2m)]
-names(rchisat_f)[7:length(rchisat_f)] <- namelisthisat2f[2:length(namelisthisat2f)]
+names(rcstar_m)[9:length(rcstar_m)] <- nameliststarm[2:length(nameliststarm)]
+names(rcstar_f)[9:length(rcstar_f)] <- nameliststarf[2:length(nameliststarf)]
+names(rchisat_m)[9:length(rchisat_m)] <- namelisthisat2m[2:length(namelisthisat2m)]
+names(rchisat_f)[9:length(rchisat_f)] <- namelisthisat2f[2:length(namelisthisat2f)]
 
 head(rcstar_m)
 head(rcstar_f)
@@ -706,29 +845,39 @@ head(rchisat_m)
 head(rchisat_f)
 ```
 
-Merge male and female data
 
+Merge male and female data & create rowData
 ```{r}
 #Create rownames
+
 #Star Males
 row.names(rcstar_m) <- make.names(rcstar_m$Geneid)
-rcstar_m <- rcstar_m[ ,-c(1:6)]
-
+star_m_row <-rcstar_m[,c(7:8),drop = FALSE]
+rcstar_m <- rcstar_m[ ,-c(1:8)]
 
 # Star Females
 row.names(rcstar_f) <- make.names(rcstar_f$Geneid)
-rcstar_f <- rcstar_f[ ,-c(1:6)]
+star_f_row <-rcstar_f[,c(7:8),drop = FALSE]
+rcstar_f <- rcstar_f[ ,-c(1:8)]
+
+#bind star
+duprows <- rownames(star_f_row) %in% rownames(star_m_row)
+star_row <- rbind(star_f_row, star_m_row[!duprows,])
 
 
 # Hisat2 Males
 row.names(rchisat_m) <- make.names(rchisat_m$Geneid)
-rchisat_m <- rchisat_m[ ,-c(1:6)]
+hisat_m_row <-rchisat_m[,c(7:8),drop = FALSE]
+rchisat_m <- rchisat_m[ ,-c(1:8)]
 
 #Hisat2 Females
 row.names(rchisat_f) <- make.names(rchisat_f$Geneid)
-rchisat_f <- rchisat_f[ ,-c(1:6)]
+hisat_f_row <-rchisat_f[,c(7:8),drop = FALSE]
+rchisat_f <- rchisat_f[ ,-c(1:8)]
 
-
+#bind hisat2
+duprows <- rownames(hisat_m_row) %in% rownames(hisat_f_row)
+hisat2_row <- rbind(hisat_m_row, hisat_f_row[!duprows,])
 ```
 
 ```{r}
@@ -744,11 +893,6 @@ row.names(rchisat) <- make.names(rchisat$Row.names)
 rchisat <- rchisat[, -c(1)]
 ```
 
-```{r}
-head(row.names(rchisat_f))
-head(row.names(rchisat_m))
-
-```
 
 Create sex & breed condition
 
@@ -779,11 +923,13 @@ BiocManager::install("DESeq2")
 library("DESeq2")
 DESeq.star <- DESeqDataSetFromMatrix(countData = as.matrix(rcstar),
                                    colData = sampleinfo_star,
+                                   rowData = star_row[rownames(rcstar),],
                                    design = ~ breed + sex ) 
 
 
 DESeq.hisat <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat),
                                    colData = sampleinfo_hisat,
+                                   rowData = hisat2_row[rownames(rchisat),],
                                    design = ~ breed + sex ) 
 
 ```
@@ -818,7 +964,7 @@ apply(star_ref_ratio,2,median)
 
 ```{r}
 #gives error that gene contains zeros, temporarily add 1 to everything
-DESeq.star <- estimateSizeFactors(DESeq.star, type = "poscounts")
+DESeq.star <- estimateSizeFactors(DESeq.star)
 plot(sizeFactors(DESeq.star), colSums(counts(DESeq.star)), ylab = "library sizes", xlab = "size factors", cex = 1)
 ```
 
@@ -845,8 +991,6 @@ boxplot(log2(counts(DESeq.star, normalize= TRUE)+1), notch=FALSE, main = "Size-f
 
 ### d. Properties of the Read Count Data
 
-2. run multiQC on star log file and hisat2 slurm file (rename the file)
 3. RSeQC/QoRTs on bam file & gtf (instead of bamqc)
-4. Save to rowData: gene biotype, gene name
 5. saveRows when saving the results
 

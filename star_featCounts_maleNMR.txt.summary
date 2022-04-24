@@ -1,13 +1,13 @@
 Status	star_liver/male_out/SRR5517433.m_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517434.m_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517438.m_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517442.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517443.m_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517444.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517447.m_breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517448.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517451.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517452.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517453.m_non-breeder.star.Aligned.sortedByCoord.out.bam	star_liver/male_out/SRR5517454.m_breeder.star.Aligned.sortedByCoord.out.bam
-Assigned	18588524	14763488	18329359	21110843	16677021	20507344	14634693	19275303	18819588	15051105	17553932	18749225
+Assigned	20395373	16479854	20132533	23207687	18387595	22506092	16620320	22663614	19828481	16624221	19332588	20681354
 Unassigned_Unmapped	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0	0	0
-Unassigned_MultiMapping	7269387	6670482	7122461	7454078	6335897	7148889	6860450	9328299	7731618	5822523	6347569	7442997
+Unassigned_MultiMapping	4653425	4184075	4642115	4762915	4078728	4652006	4062840	5130672	5017335	3649607	3974120	4655283
 Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0
 Unassigned_Nonjunction	0	0	0	0	0	0	0	0	0	0	0	0
-Unassigned_NoFeatures	5605252	6552171	6009631	6692939	5032324	5725593	6131719	7259673	6553909	4719024	4648613	6435281
+Unassigned_NoFeatures	4716786	5666679	5178771	5680343	4148583	4733713	5223261	5686913	5879464	3955457	3801976	5510279
 Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0	0
-Unassigned_Ambiguity	562751	493137	620199	811400	560935	799547	558513	941333	614416	525518	669827	597004
+Unassigned_Ambiguity	473103	420550	527639	713249	500086	702285	462154	774109	528093	453826	582640	506395
