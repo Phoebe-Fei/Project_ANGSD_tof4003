@@ -938,6 +938,7 @@ DESeq.hisat <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat),
 
 Cleaning the data
 ```{r}
+par(mar=c(11, 4.1, 4.1, 2.1))
 colSums(counts(DESeq.star)) %>% barplot(las=2)
 ```
 ```{r}
@@ -971,7 +972,7 @@ plot(sizeFactors(DESeq.star), colSums(counts(DESeq.star)), ylab = "library sizes
 Normalization and Plotting
 ```{r}
 par(mfrow=c(1,2))
-
+par(mar=c(11, 4.1, 4.1, 2.1))
 counts.star_norm <- counts(DESeq.star, normalized = TRUE)
 
 boxplot(counts.star_norm, main = "SF normalized", las = 2, cex = .6)
@@ -981,7 +982,7 @@ boxplot of log2 transformation
 
 ```{r}
 par(mfrow=c(1,2))
-
+par(mar=c(11, 4.1, 4.1, 2.1))
 boxplot(log2(counts(DESeq.star)+1), notch=FALSE, main = "Non-normalized read counts", ylab="log2(read counts)", cex = .6, las = 2)
 
 boxplot(log2(counts(DESeq.star, normalize= TRUE)+1), notch=FALSE, main = "Size-factor-normalized read counts", ylab="log2(read counts)", cex = .6, las = 2)
