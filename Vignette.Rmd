@@ -908,8 +908,8 @@ hisat_breed <- gsub("(m|f)_","",hisat_level)
 ```
 
 ```{r}
-sampleinfo_hisat <- DataFrame(breed = hisat_breed, sex = hisat_sex, row.names = names(rchisat))
-sampleinfo_star <- DataFrame(breed = star_breed, sex = star_sex ,row.names = names(rcstar))
+sampleinfo_hisat <- data.frame(breed = hisat_breed, sex = hisat_sex, row.names = names(rchisat))
+sampleinfo_star <- data.frame(breed = star_breed, sex = star_sex ,row.names = names(rcstar))
 
 ```
 
