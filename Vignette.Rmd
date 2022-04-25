@@ -1975,6 +1975,7 @@ gzip *.txt
 # Discussion
 
 In this project, I have tested on the question if there are differential expression within the naked mole rat dataset, and if using different analysis tools will provide different DE results.
+Additionally, the Result Plot directory contains all used and supplemental figures.
 
 ## Issues
 
@@ -1987,7 +1988,10 @@ Guinea pig is a close relative to naked mole-rat, but not as related as Damara m
 # References
 
 [1](https://bmcbiol.biomedcentral.com/articles/10.1186/s12915-018-0546-z).Bens, M., Szafranski, K., Holtze, S., Sahm, A., Groth, M., Kestler, H. A., ... & Platzer, M. (2018). Naked mole-rat transcriptome signatures of socially suppressed sexual maturation and links of reproduction to aging. BMC biology, 16(1), 1-13.
+
 [2](https://pubmed.ncbi.nlm.nih.gov/21993625/).Kim, E. B., Fang, X., Fushan, A. A., Huang, Z., Lobanov, A. V., Han, L., ... & Gladyshev, V. N. (2011). Genome sequencing reveals insights into physiology and longevity of the naked mole rat. Nature, 479(7372), 223-227.
+
 [3](https://www.sciencedirect.com/science/article/pii/S2211124714006147).Fang, X., Seim, I., Huang, Z., Gerashchenko, M., Xiong, Z., Turanov, A., ... & Gladyshev, V. (2014). Adaptations to a subterranean environment and longevity revealed by the analysis of mole rat genomes. Cell reports, 8(5), 1354-1364.
+
 [4](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5322551/).Delsuc, F., & Tilak, M. K. (2015). Naked but not hairless: the pitfalls of analyses of molecular adaptation based on few genome sequence comparisons. Genome biology and evolution, 7(3), 768-774.
 
