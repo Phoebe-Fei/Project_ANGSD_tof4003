@@ -1,7 +1,7 @@
 ---
 title: "Project Vignette"
 author: "Phoebe Fei"
-date: "3/26/2022"
+date: "4/25/2022"
 output: 
   html_document:
     toc: true
@@ -29,21 +29,249 @@ h4{
 
 ```
 
-**This is the main workflow .rmd that guides through the workflow of this project, some copied from the checkpoint rmd**
+# Introduction
 
-# 1. File Download and Preparation
+The naked mole rat (Heterocephalus glaber) is a extraordinarily long-lived mammal, and has been the focus of study for cancer and aging. The maximum lifespan of the naked mole-rat can exceed 30 years, and are resistant to both cancer and tumorigenesis -- distinct from its close relative, such as the Guinea pig and the Damaraland mole rat, of similar size, but are susceptible to cancer and do not have a life-span as long (1,2,3).
 
-### a. File Download 
+In 2011, Kim et al. has published a paper on the physiology of naked-mole rat, identifying some candidate genes, for example, SMAD3, that might be responsible for protecting naked-mole rats from cancer (2). However, this conclusion has been challenged by Delsuc et al., as some mutations are shared by the Guniea pigs, and that Kim has failed to account for some overlooked factors in the analysis study (4). 
 
-The reference genomes for naked mole rats are found in Ensembl. I will use the female reference genome only, since the male genomes have unconventional naming for the genes. I will be testing on the liver RNAs, so there shouldn't be too many different gene names between male and female. 
+In 2018, Bens et al. conducted a comparative transcriptome study between Naked mole rats and Guinea pigs, and reveals transcriptome patterns in breeder naked mole rats which might contribute to the long life span (1). Since this is a study comparaing across species, I thought to conduct a comparison within the naked mole-rat population to see if there are covariates unaccounted for, or differentially expressed genes within the species of interest. I downloaded their data on the liver RNAs of naked mole rats, analyzed and compared within the naked mole rat population. 
 
-For Female: http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_female/
+**Hypothesis**: There are differentially expressed genes between male and female, as well as between breeder and non-breeder naked mole rats. 
 
-The data is accessible from NCBI SRA/GEO dataset under project number PRJNA386015. The link to the SRA run selector is https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA386015&o=acc_s%3Aa.  
+# Results
 
-i. Copy the files (reference and fastq files to my directory at /athena/angsd/scratch/tof4003/project)
+## FASTQ Quality
 
-I will copy all NMR liver files to the project
+First, the quality of the fastq sequences obtained are accessed to decide if data processing is needed before alignment. As shown in the figures, the quality, GC contents and duplication are acceptable to continue to alignment without adapter trimming. In addition, in Checkpoint1 I have performed a test sample with trimgalore, and compared the FASTQC between trimmed and untrimmed. The results showed that no much difference is captured. See checkpoint1 html file.
+
+### Sequence Counts
+![](Result Plot/Sequence_Counts.png)
+
+### GC Contents
+![](Result Plot/GC content.png)
+### Duplication Level
+![](Result Plot/Duplication Level.png)
+
+## Alignment Quality
+
+I have performed both STAR and HISAT2 alignments on the same set of RNA data, since comparing different tools might account for some systematic error. Both methods return nice alignment scores of more than 90%.
+
+### STAR Alignment Score Plot
+
+STAR alignment score plot shows that for all samples, most of sequences are uniquely mapped, and we have obtained a good amount of counts to proceed to analysis.
+
+![](Result Plot/star_alignment_plot.png)
+
+### HISAT2 Alignment Score Plot
+
+HISAT2 alignment score plot shows that for all samples, most of sequences are uniquely mapped, and we have obtained a good amount of counts to proceed to analysis.
+
+**HISAT 2: Alignment Scores**
+![](Result Plot/hisat2_alignment_plot.png)
+
+### STAR Read Distribution Plot
+
+Then, the read distribution of both aligned results are accessed. For STAR, most of the reads obtained are exons, which is expected to proceed to analysis. UTR regions can be decreased in the feature counts step.
+
+![](Result Plot/star_read_distribution_plot.png)
+Similar results are shown for HISAT2 alignement as well. 
+
+![](Result Plot/hisat2_read_distribution_plot.png)
+I have concluded that the quality of alignment is ready to proceed to analyzing the differential expression. 
+
+## ReadCount Summary
+
+### Female Sample Feature Count Summary
+
+Below is a summary of the read counts data for female samples of both STAR and HISAT2. Because STAR does not show unmapped reads, it explains who HISAT2 has fewer unassigned reads comparing to STAR, while HISAT2 also has unmapped reads. 
+
+![](Result Plot/Female Sample Feature Count Summary.png)
+For the male summary plot, the result was similar.
+
+### Male Sample Feature Count Summary
+
+![](Result Plot/Male Sample Feature Count Summary.png)
+
+## DESeq Quality
+
+### PCA
+
+For the DESeq analysis, I have included sex and breed as design conditions, and below are the PCA plots for each features with each method, respectively. 
+
+#### HISAT2
+
+**Breed**
+
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/Result Plot/PCA Based on Breed HISAT2.png)
+
+**Sex**
+
+![](Result Plot/PCA Based on Sex HISAT2.png)
+
+#### HISAT2
+
+**Breed**
+
+![](Result Plot/PCA Based on Breed Status STAR.png)
+
+**Sex**
+
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/Result Plot/PCA Based on Sex STAR.png)
+They indeed account for some variations within the population, for both alignment measures. 
+
+## Differential Expression Analysis
+
+### Heatmap
+
+As an overview, the scaled heatmap for breed status test and sex test, and for both aligners are shown below.
+
+#### Sex:STAR
+
+![](Result Plot/Heatmap STAR sex scaled.png)
+
+#### Sex:HISAT2
+
+![](Result Plot/Heatmap HISAT2 sex scaled.png)
+
+#### Breed:STAR
+
+![](Result Plot/Heatmap STAR breed scaled.png)
+
+#### Breed:HISAT2
+
+![](Result Plot/Heatmap HISAT2 breed scaled.png)
+
+
+### Specific Genes with Most Test Significance
+
+Shown below are the top 10 differential expressed genes when tested against sex and breed status, for HISAT2 and STAR respectively. The top 100 genes are written into .csv files and saved to the git repository. 
+
+They are: 
+
+Results_test_breed_HISAT2_top100.csv	
+Results_test_breed_STAR_top100.csv
+Results_test_sex_HISAT2_top100.csv	
+Results_test_sex_STAR_top100.csv
+
+#### Top 10 Differentially Regulated Genes (Sex: Female vs. Male)
+
+
+**STAR**
+
+![](Result Plot/Top 10 genes sex comparison STAR.png)
+
+
+**HISAT2**
+![](Result Plot/Top 10 genes sex comparison HISAT2.png)
+
+Both aligners give similar results, but there are still some differences on the ranking and adjusted p-values.
+
+#### Top 10 Differentially Regulated Genes (Breed: Non-breeder vs. Breeder)
+
+
+**STAR**
+![](Result Plot/Top 10 genes breed comparison STAR.png)
+
+
+
+**HISAT2**
+![](Result Plot/Top 10 genes breed comparison HISAT2.png)
+I have then identified some candidate genes (with gene names) to specifically look at their expression between groups. 
+
+### Sex: PNPLA4 
+
+[PNPLA4](https://www.genecards.org/cgi-bin/carddisp.pl?gene=PNPLA4) encodes for an enzyme that has both triacylglycerol lipase and transacylase activities and may be involved in adipocyte triglyceride homeostasis.
+
+
+**STAR**
+
+![](Result Plot/PNPLA4 DE Count Sex STAR.png)
+
+
+**HISAT2**
+
+![](Result Plot/PNPLA4 DE Count Sex HISAT2.png)
+
+### Sex: RAB9A
+
+[RAB9A](https://www.genecards.org/cgi-bin/carddisp.pl?gene=RAB9A) enables GDP binding activity; GTP binding activity; and GTPase activity. Involved in negative regulation by host of symbiont catalytic activity; positive regulation of exocytosis; and regulation of protein localization. 
+
+**STAR**
+![](Result Plot/RAB9A DE Count Sex STAR.png)
+
+
+
+**HISAT2**
+![](Result Plot/RAB9A DE Count Sex HISAT2.png)
+
+### Breed: MYH7
+
+[MYH7](https://www.genecards.org/cgi-bin/carddisp.pl?gene=MYH7) encodes the beta (or slow) heavy chain subunit of cardiac myosin.
+
+
+
+**STAR**
+![](Result Plot/MYH7 DE Count Breed STAR.png)
+
+
+**HISAT2**
+![](Result Plot/MYH7 DE Count Breed HISAT2.png)
+
+
+We see that sex is indeed a covariate that should be accounted for for these genes shown above. However, such difference is not shown for the testing for breed status. Essentially there is no significant difference between the breeder and non-breeder expression for MYH7.
+
+### Volcano Plots
+
+At last, I plotted out all the up and down regulated genes when performing the 2 tests, using STAR and HISAT2 as alignment tool, respectively.
+
+#### STAR: Volcano for female vs. male
+
+![](Result Plot/Volcano Plot STAR Sex.png)
+
+#### HISAT2: Volcano for female vs. male
+
+![](Result Plot/Volcano Plot HISAT2 Sex.png)
+#### STAR: Volcano for female vs. male
+
+![](Result Plot/Volcano Plot STAR Breed.png)
+
+
+#### HISAT2: Volcano for female vs. male
+
+![](Result Plot/Volcano Plot HISAT2 Breed.png)
+
+## Conclusion
+
+### STAR vs. HISAT2
+
+In this analysis, both tools performed similarly on the alignment, although because STAR does not output unmapped results, and other algorithm differences, the output gene ranking by adjusted p-value is slightly different.
+
+### Sex as a Covariate
+
+I conclude that there are several differentially expressed genes between the male ans female naked mole rat population. When comparing across species, it is suggested that this factor is considered.
+
+### Non-breeder vs. breeder
+
+I conclude that on liver expression, there is no significant differential expression between the non-breeder and breeder population. Although, more samples would be helpful to determine if the few outliers have other confounding factors hidden.
+
+### Limit of Data
+
+This set of data is probably the one and only set available for naked mole rat expression that fulfills the number of biological and technical replicates for our analysis, so we just have to trust the technical process of it -- there is no cross validation. Also, for their close relative, like guinea pig and darama mole rat, there is even less datasets that have enough replicate. 
+
+# Methods
+
+## File Download and Preparation
+
+### 1. File Download 
+
+The reference genomes for naked mole rats are found in Ensembl. Only female reference genes are used, since the male genomes have unconventional naming for gene_id. Liver differential expression RNA analysis will be conducted between male and female, as well as breeder and non-breeder samples.  
+
+Female gtf are located [here](http://ftp.ensembl.org/pub/current_gtf/heterocephalus_glaber_female/)
+
+The data is accessible from NCBI SRA/GEO dataset under project number PRJNA386015. The link to the SRA run selector is [here](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA386015&o=acc_s%3Aa). There are 12 male samples and 11 female samples. 
+
+#### a. Copy all NMR liver files to the project
 
 ```bash
 #download the metadata file (liver for all NMR) and put it into my directory
@@ -51,7 +279,7 @@ scp "C:/Users/tof4003/Desktop/WCM/W2022/CMPB 5004/Project/SraRunTable_liver.txt"
 
 head -5 SraRunTable_liver.txt
 ```
-#### Output
+Looking into Accession Table
 ```
 Run,Age,Assay Type,AvgSpotLen,Bases,BioProject,BioSample,Bytes,Center Name,Consent,DATASTORE filetype,DATASTORE provider,DATASTORE region,Experiment,GEO_Accession (exp),Instrument,LibraryLayout,LibrarySelection,LibrarySource,Organism,Platform,ReleaseDate,reproductive_status,Sample Name,sex,source_name,SRA Study,tissue,strain
 SRR5517432,3.7 years,RNA-Seq,50,1143144100,PRJNA385850,SAMN06917366,753974373,GEO,public,"fastq,sra","gs,ncbi,s3","gs.US,ncbi.public,s3.us-east-1",SRX2790801,GSM2609133,Illumina HiSeq 2500,SINGLE,cDNA,TRANSCRIPTOMIC,Heterocephalus glaber,ILLUMINA,2018-06-14T00:00:00Z,breeder,GSM2609133,female,liver,SRP106650,liver,
@@ -61,7 +289,6 @@ SRR5517441,2.4 years,RNA-Seq,51,1253621004,PRJNA385850,SAMN06917357,846076900,GE
 
 ```
 The run is field 1, reproduction status is field 28, sex is field 30
-
 
 ```bash
 
@@ -132,42 +359,16 @@ wget -O NMR_ref/femaleNMR.gtf.gz http://ftp.ensembl.org/pub/current_gtf/heteroce
 #need to also download the reference fasta dna file
 wget -O NMR_ref/NMR_female_dna.fa.gz http://ftp.ensembl.org/pub/current_fasta/heterocephalus_glaber_female/dna/Heterocephalus_glaber_female.HetGla_female_1.0.dna.toplevel.fa.gz
 
-#unzip everything (for some reason directly specifying zcat to read .gz file with star returns that I have an extra space before the > in fasta, even though checking using head indicates no problem)
+#unzip .gtf and .fa files
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/femaleNMR.gtf
 zcat /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_female_dna.fa.gz > /athena/angsd/scratch/tof4003/project/NMR_ref/NMR_ref_female.fa
 
 sbatch ref_d.sh
 
-ls lvr_female
-ls lvr_male
 head -10 NMR_ref/femaleNMR.gtf
 ```
-#### Output
 
-lvr_female
-
-```
-SRR5517432.f_breeder.fastq  SRR5517441.f_non-breeder.fastq
-SRR5517435.f_breeder.fastq  SRR5517445.f_non-breeder.fastq
-SRR5517436.f_breeder.fastq  SRR5517446.f_non-breeder.fastq
-SRR5517437.f_breeder.fastq  SRR5517449.f_non-breeder.fastq
-SRR5517439.f_breeder.fastq  SRR5517450.f_non-breeder.fastq
-SRR5517440.f_breeder.fastq
-
-```
-lvr_male
-```
-SRR5517433.m_breeder.fastq      SRR5517447.m_breeder.fastq
-SRR5517434.m_breeder.fastq      SRR5517448.m_non-breeder.fastq
-SRR5517438.m_breeder.fastq      SRR5517451.m_non-breeder.fastq
-SRR5517442.m_non-breeder.fastq  SRR5517452.m_non-breeder.fastq
-SRR5517443.m_breeder.fastq      SRR5517453.m_non-breeder.fastq
-SRR5517454.m_breeder.fastq
-SRR5517444.m_non-breeder.fastq
-
-```
-
-Features in the gtf file
+Features in the .gtf file
 ```
 #!genome-build HetGla_female_1.0
 #!genome-version HetGla_female_1.0
@@ -180,10 +381,12 @@ JH602043.1	ensembl	exon	4194756	4194963	.	-	.	gene_id "ENSHGLG00000010267"; gene
 JH602043.1	ensembl	CDS	4194756	4194847	.	-	0	gene_id "ENSHGLG00000010267"; gene_version "1"; transcript_id "ENSHGLT00000014491"; transcript_version "1"; exon_number "1"; gene_name "ZMYND10"; gene_source "ensembl"; gene_biotype "protein_coding"; transcript_name "ZMYND10-201"; transcript_source "ensembl"; transcript_biotype "protein_coding"; protein_id "ENSHGLP00000014347"; protein_version "1";
 JH602043.1	ensembl	start_codon	4194845	4194847	.	-	0	gene_id "ENSHGLG00000010267"; gene_version "1"; transcript_id "ENSHGLT00000014491"; transcript_version "1"; exon_number "1"; gene_name "ZMYND10"; gene_source "ensembl"; gene_biotype "protein_coding"; transcript_name "ZMYND10-201"; transcript_source "ensembl"; transcript_biotype "protein_coding";
 ```
+It will be useful to keep the gene_name and gene_biotype in the analysis.
 
-### b. creating Index
 
-Create STAR index for NMR female, with editing the resource request to speed up as suggested
+#### b. creating Index
+
+Create STAR index for NMR female, with editing the resource request to speed up as suggested.
 
 ```bash
 
@@ -215,9 +418,9 @@ sbatch star_liver/star_female_ref.sh
 ```
 
 
-### c. Checking Quality of fastqc files
+#### c. Checking Quality of fastqc files
 
-Running fastqc, then Multiqc on the fastq files
+Run fastqc, then Multiqc on the fastq files. 
 
 ```bash
 cd /athena/angsd/scratch/tof4003/project
@@ -278,25 +481,12 @@ scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/fast
 
 ````
 
-#### Output
+## Alignment
 
-**Sequence Counts**
-![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/Sequence_Counts.png)
-
-**GC Contents**
-![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/GC content.png)
-**Duplication Level**
-![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/Duplication Level.png)
-
-The quality, GC contents and duplication level look good - very likely, the adaptors are already trimmed. I will carry on without using trimgalore. 
-There is a test on trimgalore with 1 sequence and shows that there is no much difference - see checkpoint1 html file.
-
-# 2. Alignment
-
-I will run STAR and Hisat2 - STAR is extremely slow but since it's the standard, I will run it. Hisat2 has generally stable performance.
+For the purpose of the question, both STAR and Hisat2 were run to access if the expression results differ. Performance-wise, STAR has taken more time and memory. Hisat2 has had generally stable performance.
 
 
-### a. Hisat2
+### 1. Hisat2
 
 ```bash
 mkdir -p liver_hisat2
@@ -362,7 +552,7 @@ sbatch hisat2_script.sh
 
 ```
 
-### b. STAR
+### 2. STAR
 
 ```bash
 cd /athena/angsd/scratch/tof4003/project/star_liver
@@ -421,9 +611,9 @@ done
 sbatch star_align.sh
 ```
 
-# 3.  Quality Check
+## Alignement Quality Check
 
-### a. clearing the files
+### 1. clearing the files
 
 ```bash
 cd /athena/angsd/scratch/tof4003/project
@@ -437,7 +627,7 @@ mv star_liver/*m_* star_liver/male_out
 ```
 
 
-### b. Multiqc on the Output Reports
+### 2. Multiqc on the Output Reports
 
 
 ```bash
@@ -477,16 +667,20 @@ scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/alig
 scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/alignment_repo/star/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/star_qc.html"
 ```
 
-#### Output of Some Selected Features
 
-**STAR Alignment Scores**
-![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/star_alignment_plot.png)
-### c. RSeQC on bam file
 
-need to download .bed file
+
+### 3. RSeQC on bam file
+
+
+#### a. Distribution
+
+Download the .bed file from UCSC Table Browser
 
 **.bed field input in UCSC**
-![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/bed input.png)
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/bed input.png)
+Import and edit the .bed file
+
 ```bash
 cd /athena/angsd/scratch/tof4003/project
 mkdir -p RSeQC
@@ -495,10 +689,12 @@ scp "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/
 
 cd /athena/angsd/scratch/tof4003/project/RSeQC
 gunzip NMR_female_ref.gz
-mv NMR_female_ref NMR_female_ref.bed
+mv NMR_female_ref NMR_ref.bed
+#my alignments all have a .1 after the chromosome name
+awk -F "\t" '{OFS = "\t"}{$1=$1".1"; print $0}' < NMR_ref.bed > NMR_ref.1.bed
 ```
 
-distribution
+Running distribution on .bam files, STAR and HISAT2 Separate
 
 ```bash
 mkdir -p distribution
@@ -518,44 +714,40 @@ spack load -r py-rseqc@2.6.4
 cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  read_distribution.py -i ${file} \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}${suf}_rseqc_distribution.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}_rseqc_distribution.out
 done
 cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  read_distribution.py -i ${file} \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}${suf}_rseqc_distribution.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/${fv}_rseqc_distribution.out
 done
 
 #hisat2
 
-cd /athena/angsd/scratch/tof4003/project/liver_hisat2/male_out
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  read_distribution.py -i ${file} \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}${suf}_rseqc_distribution.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}_rseqc_distribution.out
 done
-cd /athena/angsd/scratch/tof4003/project/liver_hisat2/female_out
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  read_distribution.py -i ${file} \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}${suf}_rseqc_distribution.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed > \
+ /athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/${fv}_rseqc_distribution.out
 done
 
-#run multiqc
+#run multiqc, note that it is best to run multiqc outside the .sh file or as a different job, as sometimes the 2 packages (py-rseqc@2.6.4 & py-multiqc) interfere permission
 spack load -r py-multiqc
 cd /athena/angsd/scratch/tof4003/project/RSeQC/distribution/star
 multiqc .
@@ -566,8 +758,9 @@ sbatch dis.sh
 
 ```
 
-coverage
-
+#### b. Coverage
+ 
+Running coverage on .bam files, STAR and HISAT2 Separate. This step takes amazingly long time
 ```bash
 cd /athena/angsd/scratch/tof4003/project/RSeQC
 mkdir -p coverage
@@ -580,53 +773,49 @@ nano coverage.sh
 #SBATCH --account=angsd_class
 #SBATCH --nodes=1
 #SBATCH --job-name=coverage
-#SBATCH --time=12:00:00 #HH/MM/SS
+#SBATCH --time=50:00:00 #HH/MM/SS
 #SBATCH --mem=8G
 spack load -r py-rseqc@2.6.4
 
 #star
-cd cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
+cd /athena/angsd/scratch/tof4003/project/star_liver/male_out
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  geneBody_coverage.py -i $file \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}${suf}_rseqc_coverage.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed \
+ -o /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}_rseqc_coverage.out
 done
 
-cd cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
+cd /athena/angsd/scratch/tof4003/project/star_liver/female_out
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  geneBody_coverage.py -i $file \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}${suf}_rseqc_coverage.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed \
+ -o /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/${fv}_rseqc_coverage.out
 done
 
 #hisat2
-cd /athena/angsd/scratch/tof4003/project/liver_hisat2/male_out
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_male
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  geneBody_coverage.py -i $file \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}${suf}_rseqc_coverage.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed\
+ -o /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}_rseqc_coverage.out
 done
 
-cd cd /athena/angsd/scratch/tof4003/project/liver_hisat2/female_out
+cd /athena/angsd/scratch/tof4003/project/liver_hisat2/out_female
 for file in *.bam; do
  echo $file
- fv=$(cut -d "." -f 1 )
- suf=$(cut -d "." -f 2)
+ fv=$(awk -F "." '{print $1"."$2}' <<< $file)
  geneBody_coverage.py -i $file \
- -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_female_ref.bed > \
- /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}${suf}_rseqc_coverage.out
+ -r /athena/angsd/scratch/tof4003/project/RSeQC/NMR_ref.1.bed \
+ -o /athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/${fv}_rseqc_coverage.out
 done
 
-#run multiqc
+#run multiqc, note that it is best to run multiqc outside the .sh file or as a different job, as sometimes the 2 packages (py-rseqc@2.6.4 & py-multiqc) interfere permission
 spack load -r py-multiqc
 cd /athena/angsd/scratch/tof4003/project/RSeQC/coverage/star
 multiqc .
@@ -636,9 +825,21 @@ multiqc .
 sbatch coverage.sh
 ```
 
+file download
+```bash
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/RSeQC/distribution/hisat2/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/ResQC_hisat2_distribution.html"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/RSeQC/distribution/star/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/ResQC_star_distribution.html"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/RSeQC/coverage/hisat2/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/ResQC_hisat2_coverage.html"
+scp tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/RSeQC/coverage/star/multiqc_report.html "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/QC htmls/ResQC_star_coverage.html"
+```
 
+## Feature Counts
 
-# 4. Feature Counts
+Feature counts are generated for STAR and HISAT2 separately. Here are the flags explained:
+
+-Not including the "-O" (reads can be assigned to more than 1 matched exon, so if reads matched more than one exon, all of them will be counted). As discussed in the homework, the ambiguous reads are most likely UTR's so will be disgarded
+-Deleting the -f flag so that only mapped genes are included 
+-Include --extraAttributes for gene_biotype and gene_name
 
 ```bash
 
@@ -658,13 +859,8 @@ nano featCounts.sh
 #SBATCH --time=12:00:00 #HH/MM/SS
 #SBATCH --mem=15G
 
-# for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
 cd /athena/angsd/scratch/tof4003/project
 spack load subread
-# for the -O I am not going to include the "-O" reads can be assigned to more than 1 matched exon (can be counted more than once) - so if reads matched more than one exon, all of them will be counted. As discussed in the hw, the ambiguous reads are most likely UTR's so I actually don't need them
-# male and female needs to be done separately (2 references)
-# deleting the -f flag because we actually want to be mapped to genes
-# because the females gtf files are nicely annotated, I can include --extraAttributes for gene_biotype & gene_name
 
 featureCounts -a NMR_ref/femaleNMR.gtf \
 -o featureCounts/star_featCounts_maleNMR.txt \
@@ -708,16 +904,145 @@ scp -r tof4003@aphrodite.med.cornell.edu:/athena/angsd/scratch/tof4003/project/f
 
 ```
 
-#### Output
-
-showing feature counts for 1
+Output showing feature count .out for 1 of the run 
 ```
 
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+	  v1.6.2
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 11 BAM files                                     ||
+||                           S SRR5517432.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517435.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517436.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517437.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517439.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517440.f_breeder.hisat2.sorted.bam         ||
+||                           S SRR5517441.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517445.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517446.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517449.f_non-breeder.hisat2.sorted.bam     ||
+||                           S SRR5517450.f_non-breeder.hisat2.sorted.bam     ||
+||                                                                            ||
+||             Output file : hisat2_featCounts_femaleNMR.txt                  ||
+||                 Summary : hisat2_featCounts_femaleNMR.txt.summary          ||
+||              Annotation : femaleNMR.gtf (GTF)                              ||
+||      Dir for temp files : featureCounts                                    ||
+||                                                                            ||
+||                 Threads : 1                                                ||
+||                   Level : meta-feature level                               ||
+||              Paired-end : no                                               ||
+||      Multimapping reads : not counted                                      ||
+|| Multi-overlapping reads : not counted                                      ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file femaleNMR.gtf ...                                     ||
+||    Features : 328743                                                       ||
+||    Meta-features : 31806                                                   ||
+||    Chromosomes/contigs : 460                                               ||
+||                                                                            ||
+|| Loading FASTA contigs : NMR_ref/NMR_ref_female.fa                          ||
+||    4229 contigs were loaded                                                ||
+||                                                                            ||
+|| Process BAM file SRR5517432.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24624992                                                  ||
+||    Successfully assigned reads : 15990487 (64.9%)                          ||
+||    Running time : 0.39 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517435.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26998998                                                  ||
+||    Successfully assigned reads : 16586190 (61.4%)                          ||
+||    Running time : 0.42 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517436.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24683617                                                  ||
+||    Successfully assigned reads : 15471399 (62.7%)                          ||
+||    Running time : 0.38 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517437.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 23891994                                                  ||
+||    Successfully assigned reads : 14360545 (60.1%)                          ||
+||    Running time : 0.37 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517439.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26804951                                                  ||
+||    Successfully assigned reads : 18015831 (67.2%)                          ||
+||    Running time : 0.42 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517440.f_breeder.hisat2.sorted.bam...                 ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 24055201                                                  ||
+||    Successfully assigned reads : 13953843 (58.0%)                          ||
+||    Running time : 0.37 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517441.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 26251990                                                  ||
+||    Successfully assigned reads : 17630134 (67.2%)                          ||
+||    Running time : 0.41 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517445.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 27278979                                                  ||
+||    Successfully assigned reads : 16961068 (62.2%)                          ||
+||    Running time : 0.43 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517446.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 39704440                                                  ||
+||    Successfully assigned reads : 25278167 (63.7%)                          ||
+||    Running time : 0.62 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517449.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 25478196                                                  ||
+||    Successfully assigned reads : 17352346 (68.1%)                          ||
+||    Running time : 0.40 minutes                                             ||
+||                                                                            ||
+|| Process BAM file SRR5517450.f_non-breeder.hisat2.sorted.bam...             ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 30450808                                                  ||
+||    Successfully assigned reads : 19670289 (64.6%)                          ||
+||    Running time : 0.48 minutes                                             ||
+||                                                                            ||
+||                         Read assignment finished.                          ||
+||                                                                            ||
+|| Summary of counting results can be found in file "featureCounts/hisat2_fe  ||
+|| atCounts_femaleNMR.txt.summary"                                            ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
 ```
 
-# 5. Analyze Count Data
+## Analyze Count Data
 
-### a. Import and process the summary Table
+### 1. Import and process the summary Table
+
 ```{r}
 library(ggplot2)
 library(magrittr)
@@ -736,7 +1061,8 @@ rcstarf <-paste0(direct,"star_featCounts_femaleNMR.txt.summary") %>%
 rcstarm <-paste0(direct,"star_featCounts_maleNMR.txt.summary") %>%
   read.table(., header = TRUE)
 ```
-Clean the sample names
+
+#### a. Clean the sample names
 
 ```{r}
 library(stringr)
@@ -753,13 +1079,10 @@ names(rcstarf)[2:length(rcstarf)] <- nameliststarf[2:length(nameliststarf)]
 names(rchisat2m)[2:length(rchisat2m)] <- namelisthisat2m[2:length(namelisthisat2m)]
 
 names(rchisat2f)[2:length(rchisat2f)] <- namelisthisat2f[2:length(namelisthisat2f)]
-str(rchisat2f)
-str(rchisat2m)
-str(rcstarf)
-str(rcstarm)
 ```
 
-Plotting
+#### b.Plotting the .summary results
+
 ```{r}
 library(patchwork)
 library(reshape2)
@@ -799,32 +1122,31 @@ melt_m <- rbind(melt_starm,melt_hisat2m)
 melt_f <- rbind(melt_starf,melt_hisat2f)
 ```
 
-```{r fig.width = 10, fig.height = 8}
-#size figure size
-#knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(50,"cm"))
+```{r fig.width = 15, fig.height = 8}
 #set texts size
-theme_set(theme(legend.position = "bottom", legend.key.size = unit(1, 'cm'),axis.text=element_text(size=14), axis.title=element_text(size=14)))
+theme_set(theme(legend.position = "bottom",legend.key.size = unit(0.4, 'cm'),axis.text=element_text(size=10), axis.title=element_text(size=10)))
 #bar plot the combined graph
-plotm <- ggplot(data = melt_m,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
-plotm
-
+plotm <- ggplot(data = melt_m,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files for Males")+guides(fill=guide_legend(nrow=2,byrow=TRUE))
+```
+```{r, eval = FALSE}
+ggsave("Male Sample Feature Count Summary.png")
 ```
 
-```{r fig.width = 10, fig.height = 8}
-#size figure size
-#knitr::opts_chunk$set(fig.width=unit(30,"cm"), fig.height=unit(70,"cm"))
-#set texts size
-theme_set(theme(legend.position = "bottom", legend.key.size = unit(1, 'cm'),axis.text=element_text(size=14), axis.title=element_text(size=14)))
-#bar plot the combined graph
-plotf <- ggplot(data = melt_f,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),width = 1,position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")
-plotf
+```{r fig.width = 15, fig.height = 8}
 
+#set texts size
+theme_set(theme(legend.position = "bottom",legend.key.size = unit(0.4, 'cm'),axis.text=element_text(size=10), axis.title=element_text(size=10)))
+#bar plot the combined graph
+plotf <- ggplot(data = melt_f,aes(x = Counts, y = Sample))+geom_bar(stat = 'identity', aes(fill = Status),width = 1,position = "dodge")+facet_wrap(Type~., nrow =2, strip.position = "right")+ggtitle("Plot Based on Summary .txt Files")+guides(fill=guide_legend(nrow=2,byrow=TRUE))
 
 ```
+```{r, eval = FALSE}
+ggsave("Female Sample Feature Count Summary.png")
+```
 
-### b. create DESeq2 Objects
+### 2. Create DESeq2 Objects
 
-Import readcounts and assign sample names
+#### a. Import readcounts and assign sample names
 ```{r}
 rchisat_f <-paste0(direct,"hisat2_featCounts_femaleNMR.txt") %>% read.table(., header = TRUE)
 rchisat_m <- paste0(direct,"hisat2_featCounts_maleNMR.txt") %>% read.table(., header = TRUE)
@@ -838,18 +1160,12 @@ names(rcstar_m)[9:length(rcstar_m)] <- nameliststarm[2:length(nameliststarm)]
 names(rcstar_f)[9:length(rcstar_f)] <- nameliststarf[2:length(nameliststarf)]
 names(rchisat_m)[9:length(rchisat_m)] <- namelisthisat2m[2:length(namelisthisat2m)]
 names(rchisat_f)[9:length(rchisat_f)] <- namelisthisat2f[2:length(namelisthisat2f)]
-
-head(rcstar_m)
-head(rcstar_f)
-head(rchisat_m)
-head(rchisat_f)
 ```
 
 
-Merge male and female data & create rowData
+#### b. Merge male and female data and create rowData
 ```{r}
-#Create rownames
-
+#create rowname and delete non-numerical data
 #Star Males
 row.names(rcstar_m) <- make.names(rcstar_m$Geneid)
 star_m_row <-rcstar_m[,c(7:8),drop = FALSE]
@@ -894,7 +1210,7 @@ rchisat <- rchisat[, -c(1)]
 ```
 
 
-Create sex & breed condition
+#### c. Create sex and breed condition
 
 ```{r}
 star_level <- gsub("SRR[0-9]+.","",names(rcstar))
@@ -913,10 +1229,16 @@ sampleinfo_star <- data.frame(breed = star_breed, sex = star_sex ,row.names = na
 
 ```
 
-Create DESeq2 Objects
+#### d. Create DESeq2 objects including the processed information
+
+Packages for DESeq and analysis
 ```{r, eval = FALSE}
 BiocManager::install("DESeq2")
-
+BiocManager::install("vsn")
+BiocManager::install("plyranges")
+BiocManager::install("apeglm")
+BiocManager::install("EnhancedVolcano")
+BiocManager::install("org.Sc.sgd.db") 
 ```
 
 ```{r, echo = FALSE}
@@ -934,13 +1256,18 @@ DESeq.hisat <- DESeqDataSetFromMatrix(countData = as.matrix(rchisat),
 
 ```
 
-### c. Access Read Counts
+### 3. Differential Expression Analysis on STAR Data 
+
+#### a. Access Read Counts
 
 Cleaning the data
-```{r}
+```{r, eval = FALSE}
+png("Count Information STAR.png")
 par(mar=c(11, 4.1, 4.1, 2.1))
-colSums(counts(DESeq.star)) %>% barplot(las=2)
+colSums(counts(DESeq.star)) %>% barplot(las=2, main = "Count Information STAR") 
+dev.off()
 ```
+
 ```{r}
 dim(DESeq.star)
 keep_star <- rowSums(counts(DESeq.star)) > 0
@@ -948,7 +1275,7 @@ DESeq.star <- DESeq.star[keep_star,]
 dim(DESeq.star)
 ```
 
-Calculate Size Factors
+#### b. Calculate Size Factors
 
 ```{r}
 # define a function to calculate the geometric mean
@@ -964,34 +1291,703 @@ apply(star_ref_ratio,2,median)
 ```
 
 ```{r}
-#gives error that gene contains zeros, temporarily add 1 to everything
 DESeq.star <- estimateSizeFactors(DESeq.star)
-plot(sizeFactors(DESeq.star), colSums(counts(DESeq.star)), ylab = "library sizes", xlab = "size factors", cex = 1)
+
 ```
 
-Normalization and Plotting
+```{r, eval = FALSE}
+png("Library Size vs. Size Factors STAR.png")
+plot(sizeFactors(DESeq.star), colSums(counts(DESeq.star)), ylab = "library sizes", xlab = "size factors", cex = 1, main = "Library Size vs. Size Factors \n (STAR)")
+dev.off()
+```
+
+#### c. Normalization and Plotting Counts
+
+Normalization 
 ```{r}
+counts.star_norm <- counts(DESeq.star, normalized = TRUE)
+```
+
+```{r, eval = FALSE}
+png("Boxplot of Normalized Read Count STAR.png")
 par(mfrow=c(1,2))
 par(mar=c(11, 4.1, 4.1, 2.1))
-counts.star_norm <- counts(DESeq.star, normalized = TRUE)
-
-boxplot(counts.star_norm, main = "SF normalized", las = 2, cex = .6)
-boxplot(counts(DESeq.star), main = "Read counts only", las = 2, cex = .6)
+boxplot(counts.star_norm, main = "SF normalized \nSTAR", las = 2, cex = .6)
+boxplot(counts(DESeq.star), main = "Read counts only \nSTAR", las = 2, cex = .6)
+dev.off()
 ```
-boxplot of log2 transformation
+Boxplot of log2 transformation
 
-```{r}
+```{r, eval = FALSE}
+png("Boxplot of Normalized Logged Read Count STAR.png")
 par(mfrow=c(1,2))
 par(mar=c(11, 4.1, 4.1, 2.1))
 boxplot(log2(counts(DESeq.star)+1), notch=FALSE, main = "Non-normalized read counts", ylab="log2(read counts)", cex = .6, las = 2)
-
 boxplot(log2(counts(DESeq.star, normalize= TRUE)+1), notch=FALSE, main = "Size-factor-normalized read counts", ylab="log2(read counts)", cex = .6, las = 2)
+dev.off()
+```
 
+
+Add the normalization datasets to the object
+
+```{r}
+assay(DESeq.star, "log.counts") <- log2(counts(DESeq.star, normalized = FALSE) + 1)
+assay(DESeq.star, "log.norm.counts") <- log2(counts(DESeq.star, normalized = TRUE) + 1)
+```
+
+#### d. Mean SD plot
+
+```{r}
+library(vsn)
+```
+```{r, eval = FALSE}
+par(mfrow=c(1,1))
+par(mar=c(11, 4.1, 4.1, 2.1))
+star_msd <- vsn::meanSdPlot(DESeq.star@assays@data@listData$log.norm.counts, ranks=FALSE, plot = FALSE)
+star_msd_gg <- star_msd$gg + ggtitle("Sequencing depth normalized log2(read counts) for STAR") + ylab("standard deviation")
+ggsave("Mean SD Plot (STAR).png")
+```
+
+#### e. PCA Plot
+
+```{r}
+DESeq.star.trans <-DESeqTransform(DESeq.star)
+```
+
+```{r, eval = FALSE}
+pca_sex_star <- plotPCA(DESeq.star.trans,
+  intgroup = 'sex',
+  returnData = FALSE) + ggtitle("PCA Plot Based on Sex, STAR")
+ggsave("PCA Based on Sex STAR.png")
+pca_breed_star <- plotPCA(DESeq.star.trans,
+  intgroup = 'breed',
+  returnData = FALSE) + ggtitle("PCA Plot Based on Breed Status, STAR")
+ggsave("PCA Based on Breed Status STAR.png")
+```
+
+#### f. Reducing dependencies
+
+```{r}
+DESeq.star.rlog <- rlog(DESeq.star, blind = TRUE)
+
+```
+```{r, eval = FALSE}
+png("SRR5517434 vs SRR5517433 STAR.png")
+par(mfrow=c(1,2))
+
+plot(DESeq.star@assays@data@listData$log.norm.counts[,1:2], cex=.1,main = "Size Factor and Log2-transformed \n STAR")
+
+plot(assay(DESeq.star.rlog)[,1], assay(DESeq.star.rlog)[,2], cex=.1, main = "Rlog Transformed \n STAR", xlab = colnames(assay(DESeq.star.rlog[,1])), ylab = colnames(assay(DESeq.star.rlog[,2])) )
+dev.off()
+```
+
+Mean SD plot after reducing dependencies
+
+```{r,eval = FALSE}
+star_msd_rlog <- vsn::meanSdPlot(assay(DESeq.star.rlog), ranks=FALSE, plot = FALSE)
+star_msd_rlog_gg<- star_msd_rlog$gg + ggtitle("Mean SD plot Following rlog Transformation") +
+coord_cartesian(ylim = c(0,3))
+ggsave("Mean SD plot Following rlog Transformation STAR.png")
+```
+
+#### g. Interpret the Expression Results
+
+Re-level the conditions
+
+```{r}
+DESeq.star$sex <- relevel(DESeq.star$sex, ref = "f")
+DESeq.star$breed <- relevel(DESeq.star$breed, ref = "breeder")
+DESeq.star$sex
+DESeq.star$breed
+```
+Running the analysis
+
+```{r}
+DESeq.star <- DESeq(DESeq.star)
+DESeq.star
+```
+
+Hypothesis testing
+
+```{r}
+### significance levels
+MIN_FC=2
+MIN_L2FC=log2(MIN_FC)
+MAX_QVAL=0.05
+
+### output controls
+N_TOP_GENES=100
+
+```
+**Sex**
+```{r}
+library(tidyverse)
+FOI = "sex"
+Level_0 = "m"
+Level_1 = "f"
+star.results.sex <- results(DESeq.star, saveCols = c("gene_biotype", "gene_name"),independentFiltering = TRUE, contrast = c(FOI, Level_0, Level_1)) %>%
+  as_tibble(rownames = "gene") %>%
+  dplyr::select(gene_biotype, gene_name, gene, everything()) %>%
+  arrange(padj)
+```
+
+```{r, eval = FALSE}
+star.results.sex %>% filter(log2FoldChange >= MIN_L2FC | log2FoldChange <= -MIN_L2FC) %>% head(n=N_TOP_GENES) %>% write.csv(.,"Results_test_sex_STAR_top100.csv")
+```
+
+**Breeder vs. non-breeder**
+```{r}
+
+FOI = "breed"
+Level_0 = "non"
+Level_1 = "breeder"
+star.results.breed <- results(DESeq.star, saveCols = c("gene_biotype", "gene_name"),independentFiltering = TRUE, contrast = c(FOI, Level_0, Level_1)) %>%
+  as_tibble(rownames = "gene") %>%
+  dplyr::select(gene_name,gene_biotype, gene, everything()) %>%
+  arrange(padj)
+```
+
+```{r, eval = FALSE}
+star.results.breed %>% filter(log2FoldChange >= MIN_L2FC | log2FoldChange <= -MIN_L2FC) %>%
+  head(n=N_TOP_GENES) %>%
+  write.csv(.,"Results_test_breed_STAR_top100.csv")
+```
+
+#### h. Visualizing the Expression
+
+>Adjusted p-value histogram
+
+```{r, eval = FALSE}
+png("Histogram of adj.p testing sex STAR.png")
+star_hist_sex <- hist(star.results.sex$padj,
+col="grey", border="white", xlab="", ylab="",
+main="Frequencies of adj. p-values\n(all genes) for STAR, based on sex",
+cex = 0.4)
+dev.off()
+```
+
+```{r, eval = FALSE}
+png("Histogram of adj.p testing breed STAR.png")
+hist(star.results.breed$padj,
+col="grey", border="white", xlab="", ylab="",
+main="frequencies of adj. p-values\n(all genes) for STAR, breeder/non-breeder comparision",
+cex = 0.4)
+dev.off()
+```
+
+>Sorted table of results
+
+**Sex**
+```{r}
+star.results.sex.sorted <- star.results.sex[order(star.results.sex$padj), ]
+#head(star.results.sex.sorted, 10)
+```
+**Breed status**
+
+```{r}
+star.results.breed.sorted <- star.results.breed[order(star.results.breed$padj), ]
+#head(star.results.breed.sorted, 10)
+```
+>DE of Selected Genes
+
+**Sex**
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("RAB9A DE Count Sex STAR.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.star, gene = "ENSHGLG00000001069" , intgroup = "sex", normalized = TRUE, main = "ENSHGLG00000001069/RAB9A \n STAR")
+plotCounts(DESeq.star, gene = which.max(star.results.sex$padj),  intgroup = "sex",main = "Gene with max p.adj.(=least) \n on sex (STAR)")
+dev.off()
+```
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("PNPLA4 DE Count Sex STAR.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.star, gene = "ENSHGLG00000000567" , intgroup = "sex", normalized = TRUE, main = "ENSHGLG00000000567\n-PNPLA4 STAR")
+plotCounts(DESeq.star, gene = which.max(star.results.sex$padj),  intgroup = "sex",main = "Gene with max p.adj.(=least) \n on sex (STAR)")
+dev.off()
+```
+
+**Breed**
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("MYH7 DE Count Breed STAR.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.star, gene = "ENSHGLG00000002052" , intgroup = "breed", normalized = TRUE, main = "ENSHGLG00000002052\n-MYH7 STAR ")
+plotCounts(DESeq.star, gene = which.max(star.results.breed$padj),  intgroup = "breed",main = "Gene with max p.adj.(=least) \n for breed")
+dev.off()
+```
+
+
+>Heatmap
+
+**Sex**
+```{r}
+star.genes.sex <- subset(star.results.sex.sorted, padj < 0.05)$gene
+
+rlog.star.sex <- DESeq.star.rlog[star.genes.sex,] %>% assay
+library(pheatmap)
+```
+
+```{r, eval = FALSE}
+png("Heatmap STAR sex(no scale).png")
+star_heat_sex <- pheatmap(rlog.star.sex, scale="none",
+show_rownames = FALSE, main = "Sex DE genes (no scaling), STAR",
+color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name =
+"Reds"))(100))
+dev.off()
+```
+
+```{r, eval = FALSE}
+png("Heatmap STAR sex (scaled).png")
+pheatmap(rlog.star.sex, scale="row",
+show_rownames = FALSE, main = "Sex DE genes (row-based z-score), STAR")
+dev.off()
+```
+
+**Breed Status**
+```{r}
+star.genes.breed <- subset(star.results.breed.sorted, padj < 0.05 )$gene
+
+rlog.star.breed <- DESeq.star.rlog[star.genes.breed,] %>% assay
+```
+
+```{r, eval = FALSE}
+png("Heatmap STAR breed (no scale).png")
+pheatmap(rlog.star.breed, scale="none",
+show_rownames = FALSE, main = "Breed Status DE genes (no scaling), STAR",
+color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name =
+"Reds"))(100))
+dev.off()
+png("Heatmap STAR breed (scaled).png")
+pheatmap(rlog.star.breed, scale="row",
+show_rownames = FALSE, main = "Breed Status DE genes (row-based z-score), STAR")
+dev.off()
+```
+>Plotting the FC Values/Shrinked FC Values
+
+**plotMA**
+```{r}
+resultsNames(DESeq.star)
+star.results.srk.sex <- lfcShrink(DESeq.star, coef = 3, type = "apeglm")
+```
+
+```{r fig.width = 15, fig.height = 8, eval = FALSE}
+png("MA Plot STAR Sex.png")
+par(mfrow = c(1,2))
+star.results.sex$sig <- star.results.sex$padj < 0.05
+plotMA(star.results.sex[,c("baseMean","log2FoldChange","sig")], alpha = 0.05,
+main = "no shrinkage \n (for sex comparison), STAR", ylim = c(-4,4))
+
+plotMA(star.results.srk.sex,
+alpha = 0.05,
+main = "with logFC shrinkage, STAR", ylim = c(-4,4))
+dev.off()
+```
+
+```{r}
+
+star.results.srk.breed <- lfcShrink(DESeq.star, coef = 2, type = "apeglm")
+```
+```{r, eval = FALSE}
+png("MA Plot STAR Breed.png")
+par(mfrow = c(1,2))
+star.results.breed$sig <- star.results.breed$padj < 0.05
+plotMA(star.results.breed[,c("baseMean","log2FoldChange","sig")], alpha = 0.05,
+main = "no shrinkage \n(for breed comparison), STAR", ylim = c(-4,4))
+
+plotMA(star.results.srk.breed,
+alpha = 0.05,
+main = "with logFC shrinkage, STAR", ylim = c(-4,4))
+dev.off()
+```
+
+**Volcano plot**
+
+```{r}
+library(EnhancedVolcano)
+```
+
+```{r fig.width = 10, fig.height = 8, eval = FALSE}
+
+#just going to directly go with the gene name
+vpstarsex <- EnhancedVolcano(star.results.sex, lab = star.results.sex$gene, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Male vs. Female, STAR")
+vpstarsexsrk <- EnhancedVolcano(star.results.srk.sex, lab = rownames(star.results.srk.sex), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "with logFC shrinkage, STAR")
+vpstarsex + vpstarsexsrk
+
+ggsave("Volcano Plot STAR Sex.png")
+```
+
+
+```{r fig.width = 10, fig.height = 8, eval = FALSE}
+vpstarb <- EnhancedVolcano(star.results.breed, lab = star.results.breed$gene, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Breeder vs. Non-breeder, STAR")
+vpstarbsrk <- EnhancedVolcano(star.results.srk.breed, lab = rownames(star.results.srk.breed), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "with logFC shrinkage, STAR")
+
+vpstarb + vpstarbsrk
+
+ggsave("Volcano Plot STAR Breed.png")
+```
+
+### 4. Differential Expression Analysis on STAR Data 
+
+#### a. Cleaning the data
+```{r,eval = FALSE}
+png("Count Information HISAT2.png")
+par(mar=c(11, 4.1, 4.1, 2.1))
+colSums(counts(DESeq.hisat)) %>% barplot(las=2, main = "Count Information HISAT2")
+dev.off()
+```
+
+```{r}
+dim(DESeq.hisat)
+keep_hisat <- rowSums(counts(DESeq.hisat)) > 0
+DESeq.hisat <- DESeq.hisat[keep_hisat,]
+dim(DESeq.hisat)
+```
+
+#### b. Calculate Size Factors
+
+
+```{r}
+DESeq.hisat <- estimateSizeFactors(DESeq.hisat)
 
 ```
 
-### d. Properties of the Read Count Data
+```{r, eval = FALSE}
+png("Library Size vs. Size Factors HISAT2.png")
+plot(sizeFactors(DESeq.hisat), colSums(counts(DESeq.hisat)), ylab = "library sizes", xlab = "size factors", cex = 1, main = "Size Factor for HISAT2")
+dev.off()
+```
 
-3. RSeQC/QoRTs on bam file & gtf (instead of bamqc)
-5. saveRows when saving the results
+#### c. Normalization and Plotting Counts
+
+```{r}
+
+counts.hisat_norm<- counts(DESeq.hisat, normalized = TRUE)
+```
+```{r, eval = FALSE}
+png("Boxplot of Normalized Read Count HISAT2.png")
+par(mfrow=c(1,2))
+par(mar=c(11, 4.1, 4.1, 2.1))
+boxplot(counts.hisat_norm, main = "SF normalized (HISAT2)", las = 2, cex = .6)
+boxplot(counts(DESeq.hisat), main = "Read counts only (HISAT2)", las = 2, cex = .6)
+dev.off()
+```
+Boxplot of log2 transformation
+
+```{r,eval = FALSE}
+png("Boxplot of Normalized Logged Read Count HISAT2.png")
+par(mfrow=c(1,2))
+par(mar=c(11, 4.1, 4.1, 2.1))
+boxplot(log2(counts(DESeq.hisat)+1), notch=FALSE, main = "Non-normalized \nread counts (HISAT2)", ylab="log2(read counts)", cex = .6, las = 2)
+
+boxplot(log2(counts(DESeq.hisat, normalize= TRUE)+1), notch=FALSE, main = "Size-factor-normalized \nread counts (HISAT2) ", ylab="log2(read counts)", cex = .6, las = 2)
+
+dev.off()
+```
+
+
+Add the normalization datasets to the object
+
+```{r}
+assay(DESeq.hisat, "log.counts") <- log2(counts(DESeq.hisat, normalized = FALSE) + 1)
+assay(DESeq.hisat, "log.norm.counts") <- log2(counts(DESeq.hisat, normalized = TRUE) + 1)
+```
+
+#### d. Mean SD plot
+```{r, eval = FALSE}
+par(mfrow=c(1,1))
+par(mar=c(11, 4.1, 4.1, 2.1))
+hisat_msd <- vsn::meanSdPlot(DESeq.hisat@assays@data@listData$log.norm.counts, ranks=FALSE, plot = FALSE)
+hisat_msd_gg <- hisat_msd$gg + ggtitle("Sequencing depth normalized log2(read counts) for HISAT2") + ylab("standard deviation")
+ggsave("Mean SD Plot (HISAT2).png")
+```
+
+
+#### e. PCA Plot
+
+```{r}
+DESeq.hisat.trans <-DESeqTransform(DESeq.hisat)
+```
+```{r, eval = FALSE}
+pca_sex_hisat <- plotPCA(DESeq.hisat.trans,
+  intgroup = 'sex',
+  returnData = FALSE) + ggtitle("PCA Plot for Sex, HISAT2")
+ggsave("PCA Based on Sex HISAT2.png")
+
+pca_breed_hisat<- plotPCA(DESeq.hisat.trans,
+  intgroup = 'breed',
+  returnData = FALSE) + ggtitle("PCA Plot for Breed, HISAT2")
+ggsave("PCA Based on Breed HISAT2.png")
+```
+
+#### f. Reducing Dependencies
+
+```{r}
+DESeq.hisat.rlog <- rlog(DESeq.hisat, blind = TRUE)
+```
+```{r, eval = FALSE}
+png("SRR5517434 vs SRR5517433 HISAT2.png")
+par(mfrow=c(1,2))
+plot(DESeq.hisat@assays@data@listData$log.norm.counts[,1:2], cex=.1,main = "size factor and log2-transformed \n(HISAT2) ")
+
+plot(assay(DESeq.hisat.rlog)[,1], assay(DESeq.hisat.rlog)[,2], cex=.1, main = "rlog transformed \n(HISAT2)", xlab = colnames(assay(DESeq.hisat.rlog[,1])), ylab = colnames(assay(DESeq.hisat.rlog[,2])) )
+dev.off()
+```
+
+Mean SD plot after reducing dependencies
+
+```{r, eval = FALSE}
+hisat_msd_rlog <- vsn::meanSdPlot(assay(DESeq.hisat.rlog), ranks=FALSE, plot = FALSE)
+hisat_msd_rlog_gg<-hisat_msd_rlog$gg + ggtitle("Following rlog transformation (HISAT2)") +
+coord_cartesian(ylim = c(0,3))
+ggsave("Mean SD plot Following rlog Transformation HISAT2.png")
+```
+
+#### g. Interpret the Expression Results
+
+Re-level the conditions
+
+```{r}
+DESeq.hisat$sex <- relevel(DESeq.hisat$sex, ref = "f")
+DESeq.hisat$breed <- relevel(DESeq.hisat$breed, ref = "breeder")
+DESeq.hisat$sex
+DESeq.hisat$breed
+```
+Running the analysis
+
+```{r}
+DESeq.hisat <- DESeq(DESeq.hisat)
+DESeq.hisat
+```
+
+Hypothesis testing
+
+**Sex**
+```{r}
+FOI = "sex"
+Level_0 = "m"
+Level_1 = "f"
+hisat.results.sex <- results(DESeq.hisat, saveCols = c("gene_biotype", "gene_name"),independentFiltering = TRUE, contrast = c(FOI, Level_0, Level_1)) %>%
+  as_tibble(rownames = "gene") %>%
+  dplyr::select(gene_biotype, gene_name, gene, everything()) %>%
+  arrange(padj)
+```
+```{r, eval = FALSE}
+hisat.results.sex %>% filter(log2FoldChange >= MIN_L2FC | log2FoldChange <= -MIN_L2FC) %>%
+  head(n=N_TOP_GENES) %>%
+  write.csv(.,"Results_test_sex_HISAT2_top100.csv")
+```
+
+**Breeder vs. non-breeder**
+```{r}
+FOI = "breed"
+Level_0 = "non"
+Level_1 = "breeder"
+hisat.results.breed <- results(DESeq.hisat, saveCols = c("gene_biotype", "gene_name"),independentFiltering = TRUE, contrast = c(FOI, Level_0, Level_1)) %>%
+  as_tibble(rownames = "gene") %>%
+  dplyr::select(gene_name,gene_biotype, gene, everything()) %>%
+  arrange(padj)
+```
+
+```{r, eval = FALSE}
+hisat.results.breed %>% filter(log2FoldChange >= MIN_L2FC | log2FoldChange <= -MIN_L2FC) %>%
+  head(n=N_TOP_GENES) %>%
+  write.csv(.,"Results_test_breed_HISAT2_top100.csv")
+```
+
+#### h. Visualizing the Expression
+
+>Adjusted p-value histogram
+
+```{r, eval = FALSE}
+png("Histogram of adj.p testing sex HISAT2.png")
+hist(hisat.results.sex$padj,
+col="grey", border="white", xlab="", ylab="",
+main="frequencies of adj. p-values\n(all genes) for HISAT2, sex comparision",
+cex = 0.4)
+dev.off()
+```
+
+```{r, eval = FALSE}
+png("Histogram of adj.p testing breed HISAT2.png")
+hist(hisat.results.breed$padj,
+col="grey", border="white", xlab="", ylab="",
+main="frequencies of adj. p-values\n(all genes) for HISAT2, breeder/non-breeder comparision",
+cex = 0.4)
+dev.off()
+```
+
+>Sorted table of results
+
+**Sex**
+```{r}
+hisat.results.sex.sorted <- hisat.results.sex[order(hisat.results.sex$padj), ]
+#head(hisat.results.sex.sorted,10)
+```
+
+**Breed status**
+
+```{r}
+hisat.results.breed.sorted <- hisat.results.breed[order(hisat.results.breed$padj), ]
+head(hisat.results.breed.sorted, 10)
+```
+>DE of Selected Genes
+
+**Sex**
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("RAB9A DE Count Sex HISAT2.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.hisat, gene = "ENSHGLG00000001069" , intgroup = "sex", normalized = TRUE, main = "ENSHGLG00000001069/RAB9A\n(HISAT2)")
+plotCounts(DESeq.hisat, gene = which.max(hisat.results.sex$padj),  intgroup = "sex",main = "Gene with max p.adj.\n(=least) for sex, HISAT2")
+dev.off()
+```
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("PNPLA4 DE Count Sex HISAT2.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.hisat, gene = "ENSHGLG00000000567" , intgroup = "sex", normalized = TRUE, main = "ENSHGLG00000000567\n-PNPLA4 (HISAT2)")
+plotCounts(DESeq.hisat, gene = which.max(hisat.results.sex$padj),  intgroup = "sex",main = "Gene with max p.adj.\n(=least) for sex, HISAT2")
+dev.off()
+```
+
+
+**Breed**
+
+```{r fig.width = 15, fig.height = 10, eval = FALSE}
+png("MYH7 DE Count Breed HISAT2.png")
+par(mfrow=c(1,2))
+plotCounts(DESeq.hisat, gene = "ENSHGLG00000002052" , intgroup = "breed", normalized = TRUE, main = "ENSHGLG00000002052\n-MYH7 (HISAT2)")
+plotCounts(DESeq.hisat, gene = which.max(hisat.results.breed$padj),  intgroup = "breed",main = "Gene with max p.adj.\n(=least) for breed, HISAT2")
+dev.off()
+```
+
+
+>Heatmap
+
+**Sex**
+```{r}
+hisat.genes.sex <- subset(hisat.results.sex.sorted, padj < 0.05)$gene
+
+rlog.hisat.sex <- DESeq.hisat.rlog[hisat.genes.sex,] %>% assay
+
+```
+```{r, eval = FALSE}
+png("Heatmap HISAT2 sex(no scale).png")
+pheatmap(rlog.hisat.sex, scale="none",
+show_rownames = FALSE, main = "Sex DE genes (no scaling)\n Aligned by HISAT2",
+color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name =
+"Reds"))(100))
+dev.off()
+```
+```{r, eval = FALSE}
+png("Heatmap HISAT2 sex (scaled).png")
+pheatmap(rlog.hisat.sex, scale="row",
+show_rownames = FALSE, main = "Sex DE genes (row-based z-score)\n Aligned by HISAT2")
+dev.off()
+```
+
+**Breed Status**
+```{r}
+hisat.genes.breed <- subset(hisat.results.breed.sorted, padj < 0.05 )$gene
+
+rlog.hisat.breed <- DESeq.hisat.rlog[hisat.genes.breed,] %>% assay
+```
+
+```{r, eval = FALSE}
+png("Heatmap HISAT2 breed (no scale).png")
+pheatmap(rlog.hisat.breed, scale="none",
+show_rownames = FALSE, main = "Breed Status DE genes (no scaling) \n Aligned by HISAT2",
+color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name =
+"Reds"))(100))
+dev.off()
+png("Heatmap HISAT2 breed (scaled).png")
+pheatmap(rlog.hisat.breed, scale="row",
+show_rownames = FALSE, main = "Breed Status DE genes (row-based z-score) \n Aligned by HISAT2")
+dev.off()
+```
+>Plotting the FC Values/Shrinked FC Values
+
+**plotMA**
+
+```{r}
+resultsNames(DESeq.hisat)
+hisat.results.srk.sex <- lfcShrink(DESeq.hisat, coef = 3, type = "apeglm")
+```
+```{r fig.width = 15, fig.height = 8, eval = FALSE}
+png("MA Plot HISAT2 Sex.png")
+par(mfrow = c(1,2))
+hisat.results.sex$sig <- hisat.results.sex$padj < 0.05
+plotMA(hisat.results.sex[,c("baseMean","log2FoldChange","sig")], alpha = 0.05,
+main = "no shrinkage \n(for sex comparison), HISAT2", ylim = c(-4,4))
+
+plotMA(hisat.results.srk.sex,
+alpha = 0.05,
+main = "with logFC shrinkage\n Aligned by HISAT2", ylim = c(-4,4))
+dev.off()
+```
+```{r}
+
+hisat.results.srk.breed <- lfcShrink(DESeq.hisat, coef = 2, type = "apeglm")
+hisat.results.breed$sig <- hisat.results.breed$padj < 0.05
+
+```
+```{r, eval = FALSE}
+png("MA Plot HISAT2 Breed.png")
+par(mfrow = c(1,2))
+plotMA(hisat.results.breed[,c("baseMean","log2FoldChange","sig")], alpha = 0.05,
+main = "no shrinkage \n (for breed comparison), HISAT2", ylim = c(-4,4))
+
+plotMA(hisat.results.srk.breed,
+alpha = 0.05,
+main = "with logFC shrinkage\n Aligned by HISAT2", ylim = c(-4,4))
+```
+
+**Volcano plot**
+```{r fig.width = 10, fig.height = 8, eval = FALSE}
+vpsexhisat <- EnhancedVolcano(hisat.results.sex, lab = hisat.results.sex$gene, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Male vs. Female \n Aligned by HISAT2")
+vphisatsexsrk <- EnhancedVolcano(hisat.results.srk.sex, lab = rownames(hisat.results.srk.sex), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "with logFC shrinkage\n Aligned by HISAT2")
+
+vpsexhisat + vphisatsexsrk
+ggsave("Volcano Plot HISAT2 Sex.png")
+```
+
+
+```{r fig.width = 10, fig.height = 8, eval = FALSE}
+vphisatb <- EnhancedVolcano(hisat.results.breed, lab = hisat.results.breed$gene, x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Breeder vs. Non-breeder\n Aligned by HISAT2")
+vpshisatsrk <- EnhancedVolcano(hisat.results.srk.breed, lab = rownames(hisat.results.srk.breed), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "with logFC shrinkage\n Aligned by HISAT2")
+
+vphisatb + vpshisatsrk
+ggsave("Volcano Plot HISAT2 Breed.png")
+```
+
+
+### 5. Clean up
+
+zipping and saving the feature counts files
+```bash
+#from my home directory
+cd "/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003"
+gzip *.txt
+```
+
+# Discussion
+
+In this project, I have tested on the question if there are differential expression within the naked mole rat dataset, and if using different analysis tools will provide different DE results.
+
+## Issues
+
+There are actually 2 reference genomes, 1 for male and 1 for female, available on Ensembl for the naked mole rat -- however, the gene_id convention for the males are out dated, thus I have decided to just use the female reference. The issue would be, if we are analyzing sex-related organs, for example, testis/ovaries, then the male reference genome will need to be revisited. 
+
+## Future Directions 
+
+Guinea pig is a close relative to naked mole-rat, but not as related as Damara mole rat. My initial interest was to access if any of the hairlessness genes on naked mole rat is related to their longevity or cancer resistance. The Damara mole rat would be a great positive control group. However, there is no publicly available data yet that has the number of replicates to perform a DE analysis.
+
+# References
+
+[1](https://bmcbiol.biomedcentral.com/articles/10.1186/s12915-018-0546-z).Bens, M., Szafranski, K., Holtze, S., Sahm, A., Groth, M., Kestler, H. A., ... & Platzer, M. (2018). Naked mole-rat transcriptome signatures of socially suppressed sexual maturation and links of reproduction to aging. BMC biology, 16(1), 1-13.
+[2](https://pubmed.ncbi.nlm.nih.gov/21993625/).Kim, E. B., Fang, X., Fushan, A. A., Huang, Z., Lobanov, A. V., Han, L., ... & Gladyshev, V. N. (2011). Genome sequencing reveals insights into physiology and longevity of the naked mole rat. Nature, 479(7372), 223-227.
+[3](https://www.sciencedirect.com/science/article/pii/S2211124714006147).Fang, X., Seim, I., Huang, Z., Gerashchenko, M., Xiong, Z., Turanov, A., ... & Gladyshev, V. (2014). Adaptations to a subterranean environment and longevity revealed by the analysis of mole rat genomes. Cell reports, 8(5), 1354-1364.
+[4](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5322551/).Delsuc, F., & Tilak, M. K. (2015). Naked but not hairless: the pitfalls of analyses of molecular adaptation based on few genome sequence comparisons. Genome biology and evolution, 7(3), 768-774.
 
