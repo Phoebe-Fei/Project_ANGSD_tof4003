@@ -33,11 +33,11 @@ h4{
 
 The naked mole rat (Heterocephalus glaber) is a extraordinarily long-lived mammal, and has been the focus of study for cancer and aging. The maximum lifespan of the naked mole-rat can exceed 30 years, and are resistant to both cancer and tumorigenesis -- distinct from its close relative, such as the Guinea pig and the Damaraland mole rat, of similar size, but are susceptible to cancer and do not have a life-span as long (1,2,3).
 
-In 2011, Kim et al. has published a paper on the physiology of naked-mole rat, identifying some candidate genes, for example, SMAD3, that might be responsible for protecting naked-mole rats from cancer (2). However, this conclusion has been challenged by Delsuc et al., as some mutations are shared by the Guniea pigs, and that Kim has failed to account for some overlooked factors in the analysis study (4). 
+Naked mole rat genomics haven't been studied as thorough as other organisms. In 2011, Kim et al. has published a paper on the physiology of naked-mole rat, identifying some candidate genes, for example, SMAD3, that might be responsible for protecting naked-mole rats from cancer (2). However, this conclusion has been challenged by Delsuc et al., as some mutations are shared by the Guniea pigs, and that Kim has failed to account for some overlooked factors in the analysis study (4). 
 
-In 2018, Bens et al. conducted a comparative transcriptome study between Naked mole rats and Guinea pigs, and reveals transcriptome patterns in breeder naked mole rats which might contribute to the long life span (1). Since this is a study comparaing across species, I thought to conduct a comparison within the naked mole-rat population to see if there are covariates unaccounted for, or differentially expressed genes within the species of interest. I downloaded their data on the liver RNAs of naked mole rats, analyzed and compared within the naked mole rat population. 
+In 2018, Bens et al. conducted a comparative transcriptome study between Naked mole rats and Guinea pigs, and reveals transcriptome patterns in breeder naked mole rats which might contribute to the long life span (1). Their conclusion was that non-breeder naked mole-rats show low levels of differentiation between sexes comparing to non-breeder guinea pig, and after transition into breeders, naked mole rat transcriptomes become remarkably sex-specific. Since this is a study comparing across species, I thought to conduct a comparison within the naked mole-rat population to see if there are differentially expressed genes within the species of interest. Additionally, I was interested in looking at if using different alignment tools produce different results. I downloaded their data on the liver RNAs of naked mole rats, analyzed and compared within the naked mole rat population. 
 
-**Hypothesis**: There are differentially expressed genes between male and female, as well as between breeder and non-breeder naked mole rats. 
+**Hypothesis**: There are differentially expressed genes between male and female, as well as between breeder and non-breeder naked mole rats. Using STAR or HISAT2 as alignment tool will affect the result. 
 
 # Results
 
@@ -70,15 +70,29 @@ HISAT2 alignment score plot shows that for all samples, most of sequences are un
 **HISAT 2: Alignment Scores**
 ![](Result Plot/hisat2_alignment_plot.png)
 
-### STAR Read Distribution Plot
+### Read Distribution Plot
 
 Then, the read distribution of both aligned results are accessed. For STAR, most of the reads obtained are exons, which is expected to proceed to analysis. UTR regions can be decreased in the feature counts step.
 
+**STAR Read Distribution**
 ![](Result Plot/star_read_distribution_plot.png)
 Similar results are shown for HISAT2 alignement as well. 
 
+**HISAT2 Read Distribution**
 ![](Result Plot/hisat2_read_distribution_plot.png)
 I have concluded that the quality of alignment is ready to proceed to analyzing the differential expression. 
+
+### Gene Body Coverage Plot
+
+Both STAR and HISAT2 did similarly on gene body coverage. The coverage was uniform with sight drop on the 5' and 3' ends. 
+
+**STAR Gene Coverage**
+
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/Result Plot/star_gene_body_coverage_plot.png)
+
+**HISAT2 Gene Coverage**
+
+![](/Users/phoebefei/Desktop/WCM/W2022/CMPB 5004/Project/ANGSD Project tof4003/Result Plot/hisat2_gene_body_coverage_plot.png)
 
 ## ReadCount Summary
 
@@ -171,11 +185,13 @@ Both aligners give similar results, but there are still some differences on the 
 
 
 **STAR**
+
 ![](Result Plot/Top 10 genes breed comparison STAR.png)
 
 
 
 **HISAT2**
+
 ![](Result Plot/Top 10 genes breed comparison HISAT2.png)
 I have then identified some candidate genes (with gene names) to specifically look at their expression between groups. 
 
@@ -193,16 +209,20 @@ I have then identified some candidate genes (with gene names) to specifically lo
 
 ![](Result Plot/PNPLA4 DE Count Sex HISAT2.png)
 
+
 ### Sex: RAB9A
 
 [RAB9A](https://www.genecards.org/cgi-bin/carddisp.pl?gene=RAB9A) enables GDP binding activity; GTP binding activity; and GTPase activity. Involved in negative regulation by host of symbiont catalytic activity; positive regulation of exocytosis; and regulation of protein localization. 
 
+
 **STAR**
+
 ![](Result Plot/RAB9A DE Count Sex STAR.png)
 
 
 
 **HISAT2**
+
 ![](Result Plot/RAB9A DE Count Sex HISAT2.png)
 
 ### Breed: MYH7
@@ -212,14 +232,16 @@ I have then identified some candidate genes (with gene names) to specifically lo
 
 
 **STAR**
+
 ![](Result Plot/MYH7 DE Count Breed STAR.png)
 
 
 **HISAT2**
+
 ![](Result Plot/MYH7 DE Count Breed HISAT2.png)
 
 
-We see that sex is indeed a covariate that should be accounted for for these genes shown above. However, such difference is not shown for the testing for breed status. Essentially there is no significant difference between the breeder and non-breeder expression for MYH7.
+We see that sex is indeed a covariate that should be accounted for for these genes shown above. However, such difference is not especially shown for the testing for breed status. It seems that a specific subset shows significant difference in expression for MYH7.
 
 ### Volcano Plots
 
@@ -253,11 +275,12 @@ I conclude that there are several differentially expressed genes between the mal
 
 ### Non-breeder vs. breeder
 
-I conclude that on liver expression, there is no significant differential expression between the non-breeder and breeder population. Although, more samples would be helpful to determine if the few outliers have other confounding factors hidden.
+I conclude that on liver expression, there are no significant differential expression genes between the non-breeder and breeder population. Although, directly graphing the genes showed that there are variabilities within the breeder/non-breeder sample. Smore samples would be helpful to determine if the few outliers have other confounding factors hidden.
 
 ### Limit of Data
 
 This set of data is probably the one and only set available for naked mole rat expression that fulfills the number of biological and technical replicates for our analysis, so we just have to trust the technical process of it -- there is no cross validation. Also, for their close relative, like guinea pig and darama mole rat, there is even less datasets that have enough replicate. 
+Also, for the reference, to keep gene annotations consistent, I had to use female referencing index for all - this will be challenging when applying on other organs.  
 
 # Methods
 
@@ -1980,6 +2003,8 @@ Additionally, the Result Plot directory contains all used and supplemental figur
 ## Issues
 
 There are actually 2 reference genomes, 1 for male and 1 for female, available on Ensembl for the naked mole rat -- however, the gene_id convention for the males are out dated, thus I have decided to just use the female reference. The issue would be, if we are analyzing sex-related organs, for example, testis/ovaries, then the male reference genome will need to be revisited. 
+
+Top genes hit in the test for sex were actually unaccounted for specific gene names - we are missing some information in the database in general. 
 
 ## Future Directions 
 
